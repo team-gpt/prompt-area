@@ -45,6 +45,12 @@
   "pnpm": {
     "overrides": {
       "@types/react": "19.1.2"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "msw",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
