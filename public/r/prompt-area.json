@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "prompt-area",
+  "type": "registry:component",
+  "title": "Prompt Area",
+  "description": "A textarea component designed for AI prompt input.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/new-york/blocks/prompt-area/prompt-area.tsx",
+      "content": "import * as React from \"react\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface PromptAreaProps\n  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}\n\nconst PromptArea = React.forwardRef<HTMLTextAreaElement, PromptAreaProps>(\n  ({ className, ...props }, ref) => {\n    return (\n      <textarea\n        className={cn(\n          \"flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50\",\n          className\n        )}\n        ref={ref}\n        placeholder=\"Enter your prompt...\"\n        {...props}\n      />\n    )\n  }\n)\nPromptArea.displayName = \"PromptArea\"\n\nexport { PromptArea }\n",
+      "type": "registry:component"
+    }
+  ]
+}

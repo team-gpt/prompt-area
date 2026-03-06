@@ -1,0 +1,42 @@
+{
+  "name": "prompt-area",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "registry:build": "shadcn build"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "geist": "^1.7.0",
+    "lucide-react": "^0.487.0",
+    "next": "15.5.9",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "shadcn": "^2.5.0",
+    "tailwind-merge": "^3.3.0",
+    "tw-animate-css": "^1.3.4",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.9",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.1.2"
+    }
+  }
+}
