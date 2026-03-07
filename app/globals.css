@@ -112,6 +112,16 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Shiki dual-theme: resolve CSS variables based on active theme */
+:root {
+  --shiki-color: var(--shiki-light);
+  --shiki-bg: var(--shiki-light-bg);
+}
+.dark {
+  --shiki-color: var(--shiki-dark);
+  --shiki-bg: var(--shiki-dark-bg);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

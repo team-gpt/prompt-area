@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useShikiHighlight } from '@/hooks/use-shiki'
 
 interface ExampleShowcaseProps {
   children: React.ReactNode
@@ -12,6 +13,7 @@ interface ExampleShowcaseProps {
 export function ExampleShowcase({ children, code }: ExampleShowcaseProps) {
   const [tab, setTab] = useState<'preview' | 'code'>('preview')
   const [copied, setCopied] = useState(false)
+  const highlightedHtml = useShikiHighlight(code)
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(code)
@@ -57,6 +59,11 @@ export function ExampleShowcase({ children, code }: ExampleShowcaseProps) {
 
       {tab === 'preview' ? (
         <div className="pt-3">{children}</div>
+      ) : highlightedHtml ? (
+        <div
+          className="bg-muted mt-3 overflow-x-auto rounded-lg p-4 text-sm [&_.shiki]:!bg-transparent [&_pre]:!m-0 [&_pre]:!bg-transparent [&_pre]:!p-0"
+          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+        />
       ) : (
         <pre className="bg-muted mt-3 overflow-x-auto rounded-lg p-4 text-sm">
           <code>{code}</code>
