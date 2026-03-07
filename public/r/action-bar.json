@@ -1,7 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "action-bar",
-  "type": "registry:component",
   "title": "Action Bar",
   "description": "A horizontal toolbar with left and right slots, designed to sit below a text input. Pairs with PromptArea for a complete chat input experience.",
   "registryDependencies": [],
@@ -16,5 +15,6 @@
       "content": "/**\n * ActionBar component types\n *\n * A horizontal toolbar with left and right slots, designed to sit\n * below a text input (e.g., PromptArea) and stay anchored via\n * normal document flow.\n */\n\n/**\n * Props for the ActionBar component.\n */\nexport type ActionBarProps = {\n  /** Content rendered on the left side of the bar */\n  left?: React.ReactNode\n  /** Content rendered on the right side of the bar */\n  right?: React.ReactNode\n  /** Additional CSS class for the root element */\n  className?: string\n  /** Whether the action bar is disabled (visually dims and disables pointer events) */\n  disabled?: boolean\n  /** Accessible label for the toolbar */\n  'aria-label'?: string\n  /** data-test-id for e2e testing */\n  'data-test-id'?: string\n}\n",
       "type": "registry:component"
     }
-  ]
+  ],
+  "type": "registry:component"
 }
