@@ -738,14 +738,14 @@ describe('replaceTextRange', () => {
 
   it('replaces at the start of text', () => {
     const segments: Segment[] = [{ type: 'text', text: '- item' }]
-    const result = replaceTextRange(segments, 0, 2, '\u2022 ')
-    expect(result).toEqual([{ type: 'text', text: '\u2022 item' }])
+    const result = replaceTextRange(segments, 0, 2, '\u2013 ')
+    expect(result).toEqual([{ type: 'text', text: '\u2013 item' }])
   })
 
   it('inserts text at a position (empty range)', () => {
     const segments: Segment[] = [{ type: 'text', text: 'hello' }]
-    const result = replaceTextRange(segments, 5, 5, '\n\u2022 ')
-    expect(result).toEqual([{ type: 'text', text: 'hello\n\u2022 ' }])
+    const result = replaceTextRange(segments, 5, 5, '\n\u2013 ')
+    expect(result).toEqual([{ type: 'text', text: 'hello\n\u2013 ' }])
   })
 
   it('preserves chip segments', () => {
@@ -754,10 +754,10 @@ describe('replaceTextRange', () => {
       { type: 'text', text: ' - item' },
     ]
     // Plain text: "@Alice - item", range is 7..9 (the "- ")
-    const result = replaceTextRange(segments, 7, 9, '\u2022 ')
+    const result = replaceTextRange(segments, 7, 9, '\u2013 ')
     expect(result).toEqual([
       { type: 'chip', trigger: '@', value: 'user-1', displayText: 'Alice' },
-      { type: 'text', text: ' \u2022 item' },
+      { type: 'text', text: ' \u2013 item' },
     ])
   })
 })
@@ -767,12 +767,12 @@ describe('replaceTextRange', () => {
 // ===========================================================================
 
 describe('getListContext', () => {
-  it('detects bullet line with •', () => {
-    const result = getListContext('\u2022 item', 7)
+  it('detects bullet line with –', () => {
+    const result = getListContext('\u2013 item', 7)
     expect(result).not.toBeNull()
     expect(result!.listType).toBe('bullet')
     expect(result!.indent).toBe(0)
-    expect(result!.prefix).toBe('\u2022 ')
+    expect(result!.prefix).toBe('\u2013 ')
     expect(result!.contentStart).toBe(2)
   })
 
@@ -783,10 +783,10 @@ describe('getListContext', () => {
   })
 
   it('detects indented bullet', () => {
-    const result = getListContext('  \u2022 nested', 10)
+    const result = getListContext('  \u2013 nested', 10)
     expect(result).not.toBeNull()
     expect(result!.indent).toBe(1)
-    expect(result!.prefix).toBe('  \u2022 ')
+    expect(result!.prefix).toBe('  \u2013 ')
   })
 
   it('detects numbered list', () => {
@@ -819,7 +819,7 @@ describe('getListContext', () => {
   })
 
   it('detects list context on a specific line in multi-line text', () => {
-    const text = 'header\n\u2022 item1\n\u2022 item2'
+    const text = 'header\n\u2013 item1\n\u2013 item2'
     const result = getListContext(text, text.length)
     expect(result).not.toBeNull()
     expect(result!.listType).toBe('bullet')
@@ -832,26 +832,26 @@ describe('getListContext', () => {
 // ===========================================================================
 
 describe('autoFormatListPrefix', () => {
-  it('converts "- " to "• "', () => {
+  it('converts "- " to "– "', () => {
     const segments: Segment[] = [{ type: 'text', text: '- ' }]
     const result = autoFormatListPrefix(segments, 2)
     expect(result).not.toBeNull()
-    expect(result!.segments).toEqual([{ type: 'text', text: '\u2022 ' }])
+    expect(result!.segments).toEqual([{ type: 'text', text: '\u2013 ' }])
     expect(result!.cursorOffset).toBe(2)
   })
 
-  it('converts "* " to "• "', () => {
+  it('converts "* " to "– "', () => {
     const segments: Segment[] = [{ type: 'text', text: '* ' }]
     const result = autoFormatListPrefix(segments, 2)
     expect(result).not.toBeNull()
-    expect(result!.segments).toEqual([{ type: 'text', text: '\u2022 ' }])
+    expect(result!.segments).toEqual([{ type: 'text', text: '\u2013 ' }])
   })
 
-  it('converts indented "  - " to "  • "', () => {
+  it('converts indented "  - " to "  – "', () => {
     const segments: Segment[] = [{ type: 'text', text: '  - ' }]
     const result = autoFormatListPrefix(segments, 4)
     expect(result).not.toBeNull()
-    expect(result!.segments).toEqual([{ type: 'text', text: '  \u2022 ' }])
+    expect(result!.segments).toEqual([{ type: 'text', text: '  \u2013 ' }])
     expect(result!.cursorOffset).toBe(4)
   })
 
@@ -869,7 +869,7 @@ describe('autoFormatListPrefix', () => {
     const segments: Segment[] = [{ type: 'text', text: 'line1\n- ' }]
     const result = autoFormatListPrefix(segments, 8)
     expect(result).not.toBeNull()
-    expect(result!.segments).toEqual([{ type: 'text', text: 'line1\n\u2022 ' }])
+    expect(result!.segments).toEqual([{ type: 'text', text: 'line1\n\u2013 ' }])
   })
 })
 
@@ -879,10 +879,10 @@ describe('autoFormatListPrefix', () => {
 
 describe('insertListContinuation', () => {
   it('continues a bullet list on Enter', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item1' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item1' }]
     const result = insertListContinuation(segments, 7)
     expect(result).not.toBeNull()
-    expect(segmentsToPlainText(result!.segments)).toBe('\u2022 item1\n\u2022 ')
+    expect(segmentsToPlainText(result!.segments)).toBe('\u2013 item1\n\u2013 ')
   })
 
   it('continues a numbered list with incremented number', () => {
@@ -893,11 +893,11 @@ describe('insertListContinuation', () => {
   })
 
   it('exits list mode when content is empty (just prefix)', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item1\n\u2022 ' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item1\n\u2013 ' }]
     const result = insertListContinuation(segments, 10)
     expect(result).not.toBeNull()
     // The empty bullet line should be removed
-    expect(segmentsToPlainText(result!.segments)).toBe('\u2022 item1\n')
+    expect(segmentsToPlainText(result!.segments)).toBe('\u2013 item1\n')
   })
 
   it('returns null for non-list line', () => {
@@ -906,10 +906,10 @@ describe('insertListContinuation', () => {
   })
 
   it('preserves indentation level', () => {
-    const segments: Segment[] = [{ type: 'text', text: '  \u2022 nested' }]
+    const segments: Segment[] = [{ type: 'text', text: '  \u2013 nested' }]
     const result = insertListContinuation(segments, 10)
     expect(result).not.toBeNull()
-    expect(segmentsToPlainText(result!.segments)).toBe('  \u2022 nested\n  \u2022 ')
+    expect(segmentsToPlainText(result!.segments)).toBe('  \u2013 nested\n  \u2013 ')
   })
 })
 
@@ -919,10 +919,10 @@ describe('insertListContinuation', () => {
 
 describe('indentListItem', () => {
   it('indents a bullet item by 2 spaces', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item' }]
     const result = indentListItem(segments, 6)
     expect(result).not.toBeNull()
-    expect(segmentsToPlainText(result!.segments)).toBe('  \u2022 item')
+    expect(segmentsToPlainText(result!.segments)).toBe('  \u2013 item')
     expect(result!.cursorOffset).toBe(8) // original 6 + 2
   })
 
@@ -934,15 +934,15 @@ describe('indentListItem', () => {
 
 describe('outdentListItem', () => {
   it('outdents a bullet item by 2 spaces', () => {
-    const segments: Segment[] = [{ type: 'text', text: '  \u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '  \u2013 item' }]
     const result = outdentListItem(segments, 8)
     expect(result).not.toBeNull()
-    expect(segmentsToPlainText(result!.segments)).toBe('\u2022 item')
+    expect(segmentsToPlainText(result!.segments)).toBe('\u2013 item')
     expect(result!.cursorOffset).toBe(6) // original 8 - 2
   })
 
   it('returns null for already at indent 0', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item' }]
     expect(outdentListItem(segments, 6)).toBeNull()
   })
 
@@ -958,7 +958,7 @@ describe('outdentListItem', () => {
 
 describe('removeListPrefix', () => {
   it('removes bullet prefix when cursor is at content start', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item' }]
     const result = removeListPrefix(segments, 2)
     expect(result).not.toBeNull()
     expect(segmentsToPlainText(result!.segments)).toBe('item')
@@ -973,7 +973,7 @@ describe('removeListPrefix', () => {
   })
 
   it('returns null when cursor is in content (past prefix)', () => {
-    const segments: Segment[] = [{ type: 'text', text: '\u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '\u2013 item' }]
     expect(removeListPrefix(segments, 5)).toBeNull()
   })
 
@@ -983,7 +983,7 @@ describe('removeListPrefix', () => {
   })
 
   it('preserves indentation in cursor offset', () => {
-    const segments: Segment[] = [{ type: 'text', text: '  \u2022 item' }]
+    const segments: Segment[] = [{ type: 'text', text: '  \u2013 item' }]
     const result = removeListPrefix(segments, 4)
     expect(result).not.toBeNull()
     expect(segmentsToPlainText(result!.segments)).toBe('  item')
@@ -1293,14 +1293,14 @@ describe('replaceTextRange (selection delete and newline patterns)', () => {
 
   it('deletes within a multi-segment document preserving untouched segments', () => {
     const segments: Segment[] = [
-      { type: 'text', text: '\u2022 item one' },
-      { type: 'text', text: '\n\u2022 item two' },
+      { type: 'text', text: '\u2013 item one' },
+      { type: 'text', text: '\n\u2013 item two' },
     ]
-    // Plain text: "• item one\n• item two" (22 chars)
-    // "one" starts at offset 7, "\n• " is offsets 10-13
-    // Delete range 7..13 removes "one\n• " → "• item item two"
+    // Plain text: "– item one\n– item two" (22 chars)
+    // "one" starts at offset 7, "\n– " is offsets 10-13
+    // Delete range 7..13 removes "one\n– " → "– item item two"
     const result = replaceTextRange(segments, 7, 13, '')
-    expect(segmentsToPlainText(result)).toBe('\u2022 item item two')
+    expect(segmentsToPlainText(result)).toBe('\u2013 item item two')
   })
 })
 
