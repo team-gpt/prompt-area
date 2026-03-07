@@ -1,13 +1,27 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import { Github, Link as LinkIcon } from 'lucide-react'
+import {
+  Github,
+  Link as LinkIcon,
+  AtSign,
+  Type,
+  RotateCcw,
+  Paperclip,
+  PanelBottom,
+  Moon,
+  Keyboard,
+  Puzzle,
+  ArrowUp,
+  PlusCircle,
+} from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
 import type {
   Segment,
   TriggerConfig,
   PromptAreaHandle,
 } from '@/registry/new-york/blocks/prompt-area/types'
+import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
 import { ExampleShowcase } from '@/components/example-showcase'
 import {
   BasicExample,
@@ -134,6 +148,178 @@ function SectionHeading({
         <LinkIcon className={isH2 ? 'size-4' : 'size-3.5'} />
       </a>
     </Tag>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Demo section – polished chatbot input for the landing page
+// ---------------------------------------------------------------------------
+
+const DEMO_INITIAL_SEGMENTS: Segment[] = [
+  { type: 'chip', trigger: '/', value: 'summarize', displayText: 'summarize' },
+  { type: 'text', text: ' the notes from ' },
+  { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+  { type: 'text', text: ' and tag anything marked ' },
+  { type: 'chip', trigger: '#', value: 'urgent', displayText: 'urgent' },
+  { type: 'text', text: ' — use **bold** for key takeaways' },
+]
+
+const DEMO_TRIGGERS: TriggerConfig[] = [
+  {
+    char: '@',
+    position: 'any',
+    mode: 'dropdown',
+    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    accessibilityLabel: 'mention',
+    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
+  },
+  {
+    char: '/',
+    position: 'start',
+    mode: 'dropdown',
+    chipStyle: 'inline',
+    chipClassName: 'text-violet-700 dark:text-violet-400',
+    accessibilityLabel: 'command',
+    onSearch: (q) => COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
+  },
+  {
+    char: '#',
+    position: 'any',
+    mode: 'dropdown',
+    resolveOnSpace: true,
+    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    accessibilityLabel: 'tag',
+    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
+  },
+]
+
+function DemoSection() {
+  const [segments, setSegments] = useState<Segment[]>(DEMO_INITIAL_SEGMENTS)
+  const promptRef = useRef<PromptAreaHandle>(null)
+
+  const isEmpty =
+    segments.length === 0 ||
+    (segments.length === 1 && segments[0].type === 'text' && segments[0].text === '')
+
+  const handleSubmit = useCallback(() => {
+    if (isEmpty) return
+    promptRef.current?.clear()
+    setSegments([])
+  }, [isEmpty])
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="rounded-xl border p-4 shadow-sm">
+        <PromptArea
+          ref={promptRef}
+          value={segments}
+          onChange={setSegments}
+          triggers={DEMO_TRIGGERS}
+          placeholder="Ask anything..."
+          onSubmit={handleSubmit}
+          markdown
+          autoGrow
+          minHeight={48}
+          maxHeight={200}
+        />
+        <ActionBar
+          left={
+            <button
+              type="button"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground rounded-md p-1.5"
+              aria-label="Attach">
+              <PlusCircle className="size-4" />
+            </button>
+          }
+          right={
+            <button
+              type="button"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg p-1.5 disabled:opacity-50"
+              aria-label="Send message"
+              disabled={isEmpty}
+              onClick={handleSubmit}>
+              <ArrowUp className="size-4" />
+            </button>
+          }
+        />
+      </div>
+      <p className="text-muted-foreground text-center text-xs">
+        Try editing, type <code>@</code> to mention, <code>/</code> for commands, or just hit Enter
+      </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Features grid – scannable feature cards
+// ---------------------------------------------------------------------------
+
+const FEATURES = [
+  {
+    icon: AtSign,
+    title: 'Trigger-Based Chips',
+    description:
+      'Type @, /, or # to invoke mentions, commands, and tags that resolve into structured chips.',
+  },
+  {
+    icon: Type,
+    title: 'Inline Markdown',
+    description:
+      'Bold, italic, lists, and auto-linked URLs render live as you type. Keyboard shortcuts included.',
+  },
+  {
+    icon: RotateCcw,
+    title: 'Undo & Redo',
+    description:
+      'Full history stack with Ctrl+Z / Ctrl+Shift+Z. Every action is tracked and reversible.',
+  },
+  {
+    icon: Paperclip,
+    title: 'File & Image Attachments',
+    description:
+      'Paste screenshots or attach files with thumbnails, loading states, and remove buttons built in.',
+  },
+  {
+    icon: PanelBottom,
+    title: 'Action Bar',
+    description:
+      'A toolbar component with left and right slots that pairs with PromptArea for a complete chat input.',
+  },
+  {
+    icon: Moon,
+    title: 'Dark Mode Ready',
+    description:
+      'Full light and dark theme support via CSS variables. Adapts automatically to your app\u2019s theme.',
+  },
+  {
+    icon: Keyboard,
+    title: 'Accessible by Default',
+    description:
+      'ARIA labels, keyboard navigation, screen reader announcements, and focus management built in.',
+  },
+  {
+    icon: Puzzle,
+    title: 'shadcn Registry',
+    description:
+      'Install with one command. No extra dependencies. Copy-paste friendly and fully customizable.',
+  },
+]
+
+function FeaturesGrid() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {FEATURES.map((feature) => (
+        <div key={feature.title} className="flex items-start gap-3 rounded-lg border p-4">
+          <div className="bg-muted shrink-0 rounded-md p-2">
+            <feature.icon className="size-4" />
+          </div>
+          <div>
+            <div className="text-sm font-medium">{feature.title}</div>
+            <div className="text-muted-foreground text-xs">{feature.description}</div>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -675,6 +861,22 @@ export default function Home() {
         <div className="bg-muted rounded-md px-3 py-2 font-mono text-sm">
           npx shadcn@latest add https://prompt-area.com/r/prompt-area.json
         </div>
+      </div>
+
+      {/* Demo */}
+      <div id="demo" className="scroll-mt-16">
+        <DemoSection />
+      </div>
+
+      {/* Features */}
+      <div id="features" className="flex scroll-mt-16 flex-col gap-4">
+        <SectionHeading id="features" as="h2">
+          Features
+        </SectionHeading>
+        <p className="text-muted-foreground text-sm">
+          Everything you need for a production-ready rich text input.
+        </p>
+        <FeaturesGrid />
       </div>
 
       {/* Comprehensive example – all capabilities */}
