@@ -350,7 +350,7 @@ function NavSidebar() {
       )}>
       <nav
         ref={navRef}
-        className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto px-4 pt-6 pb-6">
+        className="relative flex flex-1 flex-col gap-0.5 overflow-y-auto px-4 pt-16 pb-6 lg:pt-6">
         <ActiveIndicator activeId={activeId} itemRefs={itemRefs} navRef={navRef} />
 
         {NAV_ITEMS.map((item, i) =>
