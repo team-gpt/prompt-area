@@ -1,22 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  Github,
-  PlusCircle,
-  AtSign,
-  SquareSlash,
-  Hash,
-  Mic,
-  ArrowUp,
-  Code,
-  Type,
-  Upload,
-  Image as ImageIcon,
-  Link as LinkIcon,
-} from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
+import { Github, Link as LinkIcon } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
-import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
 import { segmentsToPlainText } from '@/registry/new-york/blocks/prompt-area/prompt-area-engine'
 import type {
   Segment,
@@ -25,6 +11,33 @@ import type {
   PromptAreaImage,
   PromptAreaFile,
 } from '@/registry/new-york/blocks/prompt-area/types'
+import { ExampleShowcase } from '@/components/example-showcase'
+import {
+  BasicExample,
+  basicCode,
+  MentionsExample,
+  mentionsCode,
+  CommandsExample,
+  commandsCode,
+  TagsExample,
+  tagsCode,
+  CallbackExample,
+  callbackCode,
+  AsyncSearchExample,
+  asyncSearchCode,
+  MarkdownExample,
+  markdownCode,
+  CopyPasteExample,
+  copyPasteCode,
+  ImageAttachmentsExample,
+  imageAttachmentsCode,
+  ActionBarFullExample,
+  actionBarFullCode,
+  ActionBarMinimalExample,
+  actionBarMinimalCode,
+  ActionBarDisabledExample,
+  actionBarDisabledCode,
+} from './examples'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -76,41 +89,6 @@ function isSegmentsEmpty(segments: Segment[]): boolean {
     (segments.length === 1 && segments[0].type === 'text' && segments[0].text === '')
   )
 }
-
-const ICON_BUTTON_CLASS =
-  'rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground'
-
-const SEND_BUTTON_CLASS =
-  'rounded-lg bg-primary p-1.5 text-primary-foreground hover:bg-primary/90 disabled:opacity-50'
-
-const MENU_ITEM_CLASS = 'flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent'
-
-// ActionBar trigger configs (no component-scoped deps, safe to hoist)
-const ACTION_BAR_TRIGGERS: TriggerConfig[] = [
-  {
-    char: '@',
-    position: 'any',
-    mode: 'dropdown',
-    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '/',
-    position: 'start',
-    mode: 'dropdown',
-    chipStyle: 'inline',
-    chipClassName: 'text-violet-700 dark:text-violet-400',
-    onSearch: (q) => COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '#',
-    position: 'any',
-    mode: 'dropdown',
-    resolveOnSpace: true,
-    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-  },
-]
 
 // ---------------------------------------------------------------------------
 // SectionHeading — clickable anchor heading with hash link
@@ -383,250 +361,6 @@ function ComprehensiveExample() {
 }
 
 // ---------------------------------------------------------------------------
-// Example cards
-// ---------------------------------------------------------------------------
-
-function BasicExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        placeholder="Just a text input with Enter to submit..."
-        onSubmit={() => {
-          setSegments([])
-        }}
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function MentionsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '@',
-            position: 'any',
-            mode: 'dropdown',
-            chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-            onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type @ to mention someone..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function CommandsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '/',
-            position: 'start',
-            mode: 'dropdown',
-            chipStyle: 'inline',
-            chipClassName: 'text-violet-700 dark:text-violet-400',
-            onSearch: (q) =>
-              COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type / at the start for commands..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function TagsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '#',
-            position: 'any',
-            mode: 'dropdown',
-            resolveOnSpace: true,
-            chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-            onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type # for tags (press space to auto-resolve)..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function CallbackExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  const [lastCallback, setLastCallback] = useState('')
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-lg border p-4">
-        <PromptArea
-          value={segments}
-          onChange={setSegments}
-          triggers={[
-            {
-              char: '!',
-              position: 'any',
-              mode: 'callback',
-              onActivate: (ctx) => {
-                setLastCallback(`Activated at position ${ctx.cursorPosition}`)
-                ctx.insertChip({
-                  trigger: '!',
-                  value: 'alert',
-                  displayText: 'alert',
-                })
-              },
-            },
-          ]}
-          placeholder="Type ! to trigger a callback..."
-          minHeight={48}
-        />
-      </div>
-      {lastCallback && <div className="text-muted-foreground text-xs">{lastCallback}</div>}
-    </div>
-  )
-}
-
-function AsyncSearchExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-lg border p-4">
-        <PromptArea
-          value={segments}
-          onChange={setSegments}
-          triggers={[
-            {
-              char: '@',
-              position: 'any',
-              mode: 'dropdown',
-              searchDebounceMs: 300,
-              emptyMessage: 'No users found',
-              accessibilityLabel: 'mention',
-              onSearch: async (query, { signal }) => {
-                // Simulate a 500ms API call
-                await new Promise<void>((resolve, reject) => {
-                  const timer = setTimeout(resolve, 500)
-                  signal.addEventListener('abort', () => {
-                    clearTimeout(timer)
-                    reject(new DOMException('Aborted', 'AbortError'))
-                  })
-                })
-                return USERS.filter(
-                  (u) =>
-                    u.label.toLowerCase().includes(query.toLowerCase()) ||
-                    u.description.toLowerCase().includes(query.toLowerCase()),
-                )
-              },
-              onSearchError: (err) => {
-                // eslint-disable-next-line no-console
-                console.error('Search failed:', err)
-              },
-            },
-          ]}
-          placeholder="Type @ to search users (async, 300ms debounce)..."
-          minHeight={48}
-        />
-      </div>
-    </div>
-  )
-}
-
-function MarkdownExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        placeholder="Try **bold**, *italic*, ***both***, or start a line with - for lists..."
-        minHeight={80}
-      />
-    </div>
-  )
-}
-
-const COPY_PASTE_TRIGGERS: TriggerConfig[] = [
-  {
-    char: '@',
-    position: 'any',
-    mode: 'dropdown',
-    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '#',
-    position: 'any',
-    mode: 'dropdown',
-    resolveOnSpace: true,
-    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-  },
-]
-
-const INITIAL_SEGMENTS: Segment[] = [
-  { type: 'text', text: 'Hello ' },
-  { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
-  { type: 'text', text: ' please review ' },
-  { type: 'chip', trigger: '#', value: 'feature', displayText: 'feature' },
-  { type: 'text', text: ' when you can' },
-]
-
-function CopyPasteExample() {
-  const [sourceSegments, setSourceSegments] = useState<Segment[]>(INITIAL_SEGMENTS)
-  const [targetSegments, setTargetSegments] = useState<Segment[]>([])
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Source (select & copy)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={sourceSegments}
-            onChange={setSourceSegments}
-            triggers={COPY_PASTE_TRIGGERS}
-            placeholder="Type here..."
-            minHeight={60}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Target (paste here)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={targetSegments}
-            onChange={setTargetSegments}
-            triggers={COPY_PASTE_TRIGGERS}
-            placeholder="Paste content here..."
-            minHeight={60}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // All Options – a single example exercising every prop / option
 // ---------------------------------------------------------------------------
 
@@ -868,6 +602,7 @@ function AllOptionsExample() {
 }
 
 // ---------------------------------------------------------------------------
+<<<<<<< HEAD
 // Image Attachments example
 // ---------------------------------------------------------------------------
 
@@ -1267,6 +1002,8 @@ function ActionBarDisabledExample() {
 }
 
 // ---------------------------------------------------------------------------
+=======
+>>>>>>> 42ba170 (Add Preview/Code tabs with copy button to all examples)
 // Dark theme preview
 // ---------------------------------------------------------------------------
 
@@ -1396,7 +1133,9 @@ export default function Home() {
         <div id="example-basic" className="flex scroll-mt-16 flex-col gap-2">
           <SectionHeading id="example-basic">Basic (no triggers)</SectionHeading>
           <p className="text-muted-foreground text-xs">Simple text input with Enter to submit.</p>
-          <BasicExample />
+          <ExampleShowcase code={basicCode}>
+            <BasicExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-mentions" className="flex scroll-mt-16 flex-col gap-2">
@@ -1404,7 +1143,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>@</code> followed by a name to search users.
           </p>
-          <MentionsExample />
+          <ExampleShowcase code={mentionsCode}>
+            <MentionsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-commands" className="flex scroll-mt-16 flex-col gap-2">
@@ -1412,7 +1153,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>/</code> at the beginning of a line for commands.
           </p>
-          <CommandsExample />
+          <ExampleShowcase code={commandsCode}>
+            <CommandsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-tags" className="flex scroll-mt-16 flex-col gap-2">
@@ -1420,7 +1163,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>#tag</code> and press space to auto-create a chip. Backspace reverts it.
           </p>
-          <TagsExample />
+          <ExampleShowcase code={tagsCode}>
+            <TagsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-callback" className="flex scroll-mt-16 flex-col gap-2">
@@ -1428,7 +1173,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>!</code> to fire a callback that programmatically inserts a chip.
           </p>
-          <CallbackExample />
+          <ExampleShowcase code={callbackCode}>
+            <CallbackExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-async" className="flex scroll-mt-16 flex-col gap-2">
@@ -1437,7 +1184,9 @@ export default function Home() {
             Type <code>@</code> to trigger an async search with 300ms debounce, AbortSignal
             cancellation, and an empty-state message. Results load after a simulated 500ms delay.
           </p>
-          <AsyncSearchExample />
+          <ExampleShowcase code={asyncSearchCode}>
+            <AsyncSearchExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-markdown" className="flex scroll-mt-16 flex-col gap-2">
@@ -1447,7 +1196,9 @@ export default function Home() {
             see inline styling. Use <strong>Cmd+B</strong> / <strong>Cmd+I</strong> shortcuts. Start
             a line with <code>- </code> or <code>* </code> for auto-formatted lists (Tab to indent).
           </p>
-          <MarkdownExample />
+          <ExampleShowcase code={markdownCode}>
+            <MarkdownExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-copy-paste" className="flex scroll-mt-16 flex-col gap-2">
@@ -1457,7 +1208,9 @@ export default function Home() {
             <strong>Cmd+V</strong> in the target to paste — chips are preserved. Pasting plain text
             like <code>@alice #bug</code> from outside auto-resolves matching triggers.
           </p>
-          <CopyPasteExample />
+          <ExampleShowcase code={copyPasteCode}>
+            <CopyPasteExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-images" className="flex scroll-mt-16 flex-col gap-2">
@@ -1467,7 +1220,9 @@ export default function Home() {
             upload simulation. Click &times; to remove. Use <code>imagePosition</code> to control
             placement.
           </p>
-          <ImageAttachmentsExample />
+          <ExampleShowcase code={imageAttachmentsCode}>
+            <ImageAttachmentsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-files" className="flex scroll-mt-16 flex-col gap-2">
@@ -1503,7 +1258,9 @@ export default function Home() {
             command, and <code>#</code> tag buttons. Right slot with markdown toggle, microphone,
             and send button. The send button submits the message just like pressing Enter.
           </p>
-          <ActionBarFullExample />
+          <ExampleShowcase code={actionBarFullCode}>
+            <ActionBarFullExample />
+          </ExampleShowcase>
         </div>
 
         <div id="action-bar-minimal" className="flex scroll-mt-16 flex-col gap-2">
@@ -1511,7 +1268,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Just a send button on the right. The simplest composition.
           </p>
-          <ActionBarMinimalExample />
+          <ExampleShowcase code={actionBarMinimalCode}>
+            <ActionBarMinimalExample />
+          </ExampleShowcase>
         </div>
 
         <div id="action-bar-disabled" className="flex scroll-mt-16 flex-col gap-2">
@@ -1519,7 +1278,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Both PromptArea and ActionBar in disabled state.
           </p>
-          <ActionBarDisabledExample />
+          <ExampleShowcase code={actionBarDisabledCode}>
+            <ActionBarDisabledExample />
+          </ExampleShowcase>
         </div>
       </div>
 
