@@ -777,6 +777,28 @@ export function usePromptArea({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const applyEditResult = (
+        editor: HTMLDivElement,
+        result: { segments: Segment[]; cursorOffset: number },
+      ) => {
+        lastRenderedValue.current = result.segments
+        onChange(result.segments)
+        renderSegmentsToDOM(result.segments)
+        setCursorAtOffset(editor, result.cursorOffset)
+      }
+
+      const tryListContinuation = (editor: HTMLDivElement): boolean => {
+        if (!markdownEnabled) return false
+        const segments = readSegmentsFromDOM()
+        const cursorPos = getCursorOffset(editor)
+        if (cursorPos === null) return false
+        const plainText = segmentsToPlainText(segments)
+        if (!getListContext(plainText, cursorPos)) return false
+        const result = insertListContinuation(segments, cursorPos)
+        if (result) applyEditResult(editor, result)
+        return true
+      }
+
       // 1. Flush pending undo debounce so Cmd+Z has the latest checkpoint
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && undoBaseState.current) {
         if (undoTimer.current) {
@@ -869,12 +891,7 @@ export function usePromptArea({
               const result = e.shiftKey
                 ? outdentListItem(segments, cursorPos)
                 : indentListItem(segments, cursorPos)
-              if (result) {
-                lastRenderedValue.current = result.segments
-                onChange(result.segments)
-                renderSegmentsToDOM(result.segments)
-                setCursorAtOffset(editor, result.cursorOffset)
-              }
+              if (result) applyEditResult(editor, result)
               return
             }
           }
@@ -888,34 +905,14 @@ export function usePromptArea({
         const editor = editorRef.current
         if (editor) {
           // Check for list continuation first (same as Enter)
-          if (markdownEnabled) {
-            const segments = readSegmentsFromDOM()
-            const cursorPos = getCursorOffset(editor)
-            if (cursorPos !== null) {
-              const plainText = segmentsToPlainText(segments)
-              const ctx = getListContext(plainText, cursorPos)
-              if (ctx) {
-                const result = insertListContinuation(segments, cursorPos)
-                if (result) {
-                  lastRenderedValue.current = result.segments
-                  onChange(result.segments)
-                  renderSegmentsToDOM(result.segments)
-                  setCursorAtOffset(editor, result.cursorOffset)
-                }
-                return
-              }
-            }
-          }
+          if (tryListContinuation(editor)) return
           // Fallback: plain newline (existing behavior)
           const offsets = getSelectionOffsets(editor)
           if (offsets) {
             const currentSegments = readSegmentsFromDOM()
             events.pushUndo(currentSegments)
             const newSegments = replaceTextRange(currentSegments, offsets.start, offsets.end, '\n')
-            lastRenderedValue.current = newSegments
-            onChange(newSegments)
-            renderSegmentsToDOM(newSegments)
-            setCursorAtOffset(editor, offsets.start + 1)
+            applyEditResult(editor, { segments: newSegments, cursorOffset: offsets.start + 1 })
           }
         }
         return
@@ -925,24 +922,9 @@ export function usePromptArea({
       if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
         // 3a. Check for list continuation first (only when markdown is enabled)
         const editor = editorRef.current
-        if (markdownEnabled && editor) {
-          const segments = readSegmentsFromDOM()
-          const cursorPos = getCursorOffset(editor)
-          if (cursorPos !== null) {
-            const plainText = segmentsToPlainText(segments)
-            const ctx = getListContext(plainText, cursorPos)
-            if (ctx) {
-              e.preventDefault()
-              const result = insertListContinuation(segments, cursorPos)
-              if (result) {
-                lastRenderedValue.current = result.segments
-                onChange(result.segments)
-                renderSegmentsToDOM(result.segments)
-                setCursorAtOffset(editor, result.cursorOffset)
-              }
-              return
-            }
-          }
+        if (editor && tryListContinuation(editor)) {
+          e.preventDefault()
+          return
         }
 
         // 3b. Submit (if no list context)
@@ -969,10 +951,7 @@ export function usePromptArea({
             const currentSegments = readSegmentsFromDOM()
             events.pushUndo(currentSegments)
             const newSegments = replaceTextRange(currentSegments, offsets.start, offsets.end, '')
-            lastRenderedValue.current = newSegments
-            onChange(newSegments)
-            renderSegmentsToDOM(newSegments)
-            setCursorAtOffset(editor, offsets.start)
+            applyEditResult(editor, { segments: newSegments, cursorOffset: offsets.start })
             runTriggerDetection()
             return
           }
@@ -989,10 +968,7 @@ export function usePromptArea({
             const result = removeListPrefix(segments, cursorPos)
             if (result) {
               e.preventDefault()
-              lastRenderedValue.current = result.segments
-              onChange(result.segments)
-              renderSegmentsToDOM(result.segments)
-              setCursorAtOffset(editor, result.cursorOffset)
+              applyEditResult(editor, result)
               runTriggerDetection()
               return
             }
