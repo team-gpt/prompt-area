@@ -1,58 +1,70 @@
-import { describe, it, expect } from "vitest"
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { createRef } from "react"
-import { PromptArea } from "../prompt-area"
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { createRef } from 'react'
+import { PromptArea } from '../prompt-area'
+import type { PromptAreaHandle, Segment } from '../types'
 
-describe("PromptArea", () => {
-  it("renders a textarea element", () => {
-    render(<PromptArea />)
-    expect(screen.getByRole("textbox")).toBeInTheDocument()
+describe('PromptArea', () => {
+  const defaultProps = {
+    value: [] as Segment[],
+    onChange: vi.fn(),
+  }
+
+  it('renders a textbox element', () => {
+    render(<PromptArea {...defaultProps} />)
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
   })
 
-  it("has default placeholder text", () => {
-    render(<PromptArea />)
-    expect(screen.getByPlaceholderText("Enter your prompt...")).toBeInTheDocument()
+  it('shows placeholder when empty', () => {
+    render(<PromptArea {...defaultProps} placeholder="Type here..." />)
+    expect(screen.getByText('Type here...')).toBeInTheDocument()
   })
 
-  it("allows custom placeholder", () => {
-    render(<PromptArea placeholder="Type here..." />)
-    expect(screen.getByPlaceholderText("Type here...")).toBeInTheDocument()
+  it('hides placeholder when value is non-empty', () => {
+    render(
+      <PromptArea
+        {...defaultProps}
+        value={[{ type: 'text', text: 'hello' }]}
+        placeholder="Type here..."
+      />,
+    )
+    expect(screen.queryByText('Type here...')).not.toBeInTheDocument()
   })
 
-  it("applies custom className", () => {
-    render(<PromptArea className="custom-class" />)
-    expect(screen.getByRole("textbox")).toHaveClass("custom-class")
+  it('applies custom className to container', () => {
+    const { container } = render(<PromptArea {...defaultProps} className="custom-class" />)
+    expect(container.querySelector('.custom-class')).toBeInTheDocument()
   })
 
-  it("forwards ref to textarea", () => {
-    const ref = createRef<HTMLTextAreaElement>()
-    render(<PromptArea ref={ref} />)
-    expect(ref.current).toBeInstanceOf(HTMLTextAreaElement)
+  it('disables contentEditable when disabled', () => {
+    render(<PromptArea {...defaultProps} disabled />)
+    const editor = screen.getByRole('textbox')
+    expect(editor).toHaveAttribute('contenteditable', 'false')
+    expect(editor).toHaveAttribute('aria-disabled', 'true')
   })
 
-  it("handles user input", async () => {
-    const user = userEvent.setup()
-    render(<PromptArea />)
-    const textarea = screen.getByRole("textbox")
-    await user.type(textarea, "Hello world")
-    expect(textarea).toHaveValue("Hello world")
+  it('has correct displayName', () => {
+    expect(PromptArea.displayName).toBe('PromptArea')
   })
 
-  it("supports disabled state", () => {
-    render(<PromptArea disabled />)
-    expect(screen.getByRole("textbox")).toBeDisabled()
+  it('exposes imperative handle via ref', () => {
+    const ref = createRef<PromptAreaHandle>()
+    render(<PromptArea {...defaultProps} ref={ref} />)
+    expect(ref.current).not.toBeNull()
+    expect(typeof ref.current?.focus).toBe('function')
+    expect(typeof ref.current?.blur).toBe('function')
+    expect(typeof ref.current?.insertChip).toBe('function')
+    expect(typeof ref.current?.getPlainText).toBe('function')
+    expect(typeof ref.current?.clear).toBe('function')
   })
 
-  it("passes through HTML textarea attributes", () => {
-    render(<PromptArea rows={5} maxLength={100} name="prompt" />)
-    const textarea = screen.getByRole("textbox")
-    expect(textarea).toHaveAttribute("rows", "5")
-    expect(textarea).toHaveAttribute("maxlength", "100")
-    expect(textarea).toHaveAttribute("name", "prompt")
+  it('sets aria-label', () => {
+    render(<PromptArea {...defaultProps} aria-label="Message input" />)
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-label', 'Message input')
   })
 
-  it("has correct displayName", () => {
-    expect(PromptArea.displayName).toBe("PromptArea")
+  it('sets data-test-id', () => {
+    render(<PromptArea {...defaultProps} data-test-id="prompt-input" />)
+    expect(screen.getByRole('textbox')).toHaveAttribute('data-test-id', 'prompt-input')
   })
 })

@@ -120,3 +120,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .prompt-area-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    vertical-align: baseline;
+    margin: 0 1px;
+    background-color: var(--secondary);
+    color: var(--foreground);
+  }
+  .prompt-area-md-marker {
+    font-size: 0;
+    display: inline;
+  }
+  .prompt-area-chip--inline {
+    padding: 0;
+    border-radius: 0;
+    margin: 0;
+    font-weight: 700;
+  }
+}

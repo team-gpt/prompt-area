@@ -1,23 +1,408 @@
-import { PromptArea } from "@/registry/new-york/blocks/prompt-area/prompt-area"
+'use client'
+
+import { useCallback, useRef, useState } from 'react'
+import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
+import type {
+  Segment,
+  ChipSegment,
+  TriggerConfig,
+  PromptAreaHandle,
+} from '@/registry/new-york/blocks/prompt-area/types'
+
+// ---------------------------------------------------------------------------
+// Mock data
+// ---------------------------------------------------------------------------
+
+const USERS = [
+  { value: 'alice', label: 'Alice', description: 'Engineering' },
+  { value: 'bob', label: 'Bob', description: 'Design' },
+  { value: 'charlie', label: 'Charlie', description: 'Product' },
+  { value: 'diana', label: 'Diana', description: 'Marketing' },
+  { value: 'eve', label: 'Eve', description: 'Sales' },
+]
+
+const COMMANDS = [
+  { value: 'summarize', label: 'summarize', description: 'Summarize the conversation' },
+  { value: 'translate', label: 'translate', description: 'Translate to another language' },
+  { value: 'improve', label: 'improve', description: 'Improve writing quality' },
+  { value: 'explain', label: 'explain', description: 'Explain a concept' },
+  { value: 'code', label: 'code', description: 'Generate code snippet' },
+]
+
+const TAGS = [
+  { value: 'bug', label: 'bug' },
+  { value: 'feature', label: 'feature' },
+  { value: 'docs', label: 'docs' },
+  { value: 'urgent', label: 'urgent' },
+  { value: 'question', label: 'question' },
+]
+
+// ---------------------------------------------------------------------------
+// Full-featured demo
+// ---------------------------------------------------------------------------
+
+function FullDemo() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  const [eventLog, setEventLog] = useState<string[]>([])
+  const [submitted, setSubmitted] = useState<string>('')
+  const promptRef = useRef<PromptAreaHandle>(null)
+
+  const log = useCallback((msg: string) => {
+    setEventLog((prev) => [`${new Date().toLocaleTimeString()} ${msg}`, ...prev].slice(0, 50))
+  }, [])
+
+  const triggers: TriggerConfig[] = [
+    {
+      char: '/',
+      position: 'start',
+      mode: 'dropdown',
+      chipStyle: 'inline',
+      chipClassName: 'text-violet-700 dark:text-violet-400',
+      onSearch: (query) =>
+        COMMANDS.filter(
+          (c) =>
+            c.label.toLowerCase().includes(query.toLowerCase()) ||
+            c.description.toLowerCase().includes(query.toLowerCase()),
+        ),
+      onSelect: (s) => {
+        log(`Selected command: /${s.label}`)
+        return s.label
+      },
+    },
+    {
+      char: '@',
+      position: 'any',
+      mode: 'dropdown',
+      chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+      onSearch: (query) =>
+        USERS.filter(
+          (u) =>
+            u.label.toLowerCase().includes(query.toLowerCase()) ||
+            u.description.toLowerCase().includes(query.toLowerCase()),
+        ),
+      onSelect: (s) => {
+        log(`Selected mention: @${s.label}`)
+        return s.label
+      },
+    },
+    {
+      char: '#',
+      position: 'any',
+      mode: 'dropdown',
+      resolveOnSpace: true,
+      chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+      onSearch: (query) =>
+        TAGS.filter((t) => t.label.toLowerCase().includes(query.toLowerCase())),
+      onSelect: (s) => {
+        log(`Selected tag: #${s.label}`)
+        return s.label
+      },
+    },
+  ]
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="rounded-lg border p-4">
+        <PromptArea
+          ref={promptRef}
+          value={segments}
+          onChange={setSegments}
+          triggers={triggers}
+          placeholder="Type / for commands, @ for mentions, # for tags..."
+          onSubmit={(segs) => {
+            const text = segs
+              .map((s) => (s.type === 'text' ? s.text : `${s.trigger}${s.displayText}`))
+              .join('')
+            setSubmitted(text)
+            log(`Submitted: ${text}`)
+            promptRef.current?.clear()
+            setSegments([])
+          }}
+          onChipAdd={(chip) => log(`Chip added: ${chip.trigger}${chip.displayText}`)}
+          onChipDelete={(chip) => log(`Chip deleted: ${chip.trigger}${chip.displayText}`)}
+          onLinkClick={(url) => log(`Link clicked: ${url}`)}
+          onEscape={() => log('Escape pressed')}
+          autoGrow
+          autoFocus
+        />
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => {
+            promptRef.current?.focus()
+          }}>
+          Focus
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => {
+            promptRef.current?.clear()
+            setSegments([])
+          }}>
+          Clear
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => {
+            promptRef.current?.insertChip({
+              trigger: '@',
+              value: 'system',
+              displayText: 'System',
+            })
+          }}>
+          Insert @System chip
+        </button>
+      </div>
+
+      {submitted && (
+        <div className="rounded-lg border bg-muted/50 p-3">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Submitted:</div>
+          <div className="text-sm">{submitted}</div>
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-lg border p-3">
+          <div className="mb-2 text-xs font-medium text-muted-foreground">
+            Segments ({segments.length})
+          </div>
+          <pre className="max-h-[200px] overflow-auto text-xs">
+            {JSON.stringify(segments, null, 2)}
+          </pre>
+        </div>
+        <div className="rounded-lg border p-3">
+          <div className="mb-2 text-xs font-medium text-muted-foreground">Event Log</div>
+          <div className="max-h-[200px] overflow-auto text-xs">
+            {eventLog.length === 0 ? (
+              <span className="text-muted-foreground">No events yet...</span>
+            ) : (
+              eventLog.map((entry, i) => (
+                <div key={i} className="border-b border-border/50 py-0.5">
+                  {entry}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Example cards
+// ---------------------------------------------------------------------------
+
+function BasicExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        value={segments}
+        onChange={setSegments}
+        placeholder="Just a text input with Enter to submit..."
+        onSubmit={() => {
+          setSegments([])
+        }}
+        minHeight={48}
+      />
+    </div>
+  )
+}
+
+function MentionsExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        value={segments}
+        onChange={setSegments}
+        triggers={[
+          {
+            char: '@',
+            position: 'any',
+            mode: 'dropdown',
+            chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+            onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
+          },
+        ]}
+        placeholder="Type @ to mention someone..."
+        minHeight={48}
+      />
+    </div>
+  )
+}
+
+function CommandsExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        value={segments}
+        onChange={setSegments}
+        triggers={[
+          {
+            char: '/',
+            position: 'start',
+            mode: 'dropdown',
+            chipStyle: 'inline',
+            chipClassName: 'text-violet-700 dark:text-violet-400',
+            onSearch: (q) =>
+              COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
+          },
+        ]}
+        placeholder="Type / at the start for commands..."
+        minHeight={48}
+      />
+    </div>
+  )
+}
+
+function TagsExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        value={segments}
+        onChange={setSegments}
+        triggers={[
+          {
+            char: '#',
+            position: 'any',
+            mode: 'dropdown',
+            resolveOnSpace: true,
+            chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+            onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
+          },
+        ]}
+        placeholder="Type # for tags (press space to auto-resolve)..."
+        minHeight={48}
+      />
+    </div>
+  )
+}
+
+function CallbackExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  const [lastCallback, setLastCallback] = useState('')
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="rounded-lg border p-4">
+        <PromptArea
+          value={segments}
+          onChange={setSegments}
+          triggers={[
+            {
+              char: '!',
+              position: 'any',
+              mode: 'callback',
+              onActivate: (ctx) => {
+                setLastCallback(`Activated at position ${ctx.cursorPosition}`)
+                ctx.insertChip({
+                  trigger: '!',
+                  value: 'alert',
+                  displayText: 'alert',
+                })
+              },
+            },
+          ]}
+          placeholder="Type ! to trigger a callback..."
+          minHeight={48}
+        />
+      </div>
+      {lastCallback && (
+        <div className="text-xs text-muted-foreground">{lastCallback}</div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function Home() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-16">
-      <div className="flex flex-col gap-2">
+    <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-16">
+      {/* Hero */}
+      <div className="flex flex-col gap-3">
         <h1 className="text-3xl font-bold tracking-tight">Prompt Area</h1>
         <p className="text-muted-foreground">
-          A custom registry distributing the prompt-area component via shadcn.
+          A contentEditable rich text input with trigger-based chips, inline markdown,
+          undo/redo, and list auto-formatting. Built as a{' '}
+          <a
+            href="https://ui.shadcn.com/docs/registry"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-4">
+            shadcn registry
+          </a>{' '}
+          component.
         </p>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold">prompt-area</h2>
-          <p className="text-sm text-muted-foreground">
-            A textarea component designed for AI prompt input.
-          </p>
+        <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm">
+          npx shadcn@latest add https://prompt-area.vercel.app/r/prompt-area.json
         </div>
-        <div className="rounded-lg border p-6">
-          <PromptArea />
+      </div>
+
+      {/* Full demo */}
+      <div className="flex flex-col gap-3">
+        <h2 className="text-xl font-semibold">Full Demo</h2>
+        <p className="text-sm text-muted-foreground">
+          All 3 triggers active: <code>/</code> commands (start of line), <code>@</code>{' '}
+          mentions (anywhere), <code>#</code> tags (auto-resolve on space). Try{' '}
+          <strong>Cmd+B</strong> for bold, <strong>Cmd+I</strong> for italic, paste URLs, or
+          type <code>- </code> to start a list.
+        </p>
+        <FullDemo />
+      </div>
+
+      {/* Examples */}
+      <div className="flex flex-col gap-6">
+        <h2 className="text-xl font-semibold">Examples</h2>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Basic (no triggers)</h3>
+          <p className="text-xs text-muted-foreground">
+            Simple text input with Enter to submit.
+          </p>
+          <BasicExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">@Mentions</h3>
+          <p className="text-xs text-muted-foreground">
+            Type <code>@</code> followed by a name to search users.
+          </p>
+          <MentionsExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">/Commands (start of line)</h3>
+          <p className="text-xs text-muted-foreground">
+            Type <code>/</code> at the beginning of a line for commands.
+          </p>
+          <CommandsExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">#Tags (auto-resolve on space)</h3>
+          <p className="text-xs text-muted-foreground">
+            Type <code>#tag</code> and press space to auto-create a chip. Backspace reverts it.
+          </p>
+          <TagsExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Callback mode (!)</h3>
+          <p className="text-xs text-muted-foreground">
+            Type <code>!</code> to fire a callback that programmatically inserts a chip.
+          </p>
+          <CallbackExample />
         </div>
       </div>
     </div>
