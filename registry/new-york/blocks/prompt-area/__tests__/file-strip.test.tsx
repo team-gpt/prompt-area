@@ -101,17 +101,19 @@ describe('FileStrip', () => {
     expect(screen.queryByText(/KB/)).not.toBeInTheDocument()
   })
 
-  it('expands to show all files when "+N more" is clicked', async () => {
+  it('opens popover with hidden files when "+N more" is clicked', async () => {
     const user = userEvent.setup()
     render(<FileStrip files={manyFiles} />)
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
 
     await user.click(screen.getByText('+1 more'))
+    // 3 inline + 1 hidden in popover
     expect(screen.getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.getByLabelText('More attached files')).toBeInTheDocument()
     expect(screen.getByText('Show less')).toBeInTheDocument()
   })
 
-  it('collapses back when "Show less" is clicked', async () => {
+  it('closes popover when "Show less" is clicked', async () => {
     const user = userEvent.setup()
     render(<FileStrip files={manyFiles} />)
 
@@ -120,6 +122,7 @@ describe('FileStrip', () => {
 
     await user.click(screen.getByText('Show less'))
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.queryByLabelText('More attached files')).not.toBeInTheDocument()
     expect(screen.getByText('+1 more')).toBeInTheDocument()
   })
 

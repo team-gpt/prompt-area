@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { File, FileText, FileSpreadsheet, FileCode, Image as ImageIcon } from 'lucide-react'
 import type { PromptAreaFile } from './types'
@@ -134,38 +134,76 @@ function FileCard({
 
 export function FileStrip({ files, onRemove, onClick, className }: FileStripProps) {
   const [expanded, setExpanded] = useState(false)
+  const popoverRef = useRef<HTMLDivElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!expanded) return
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(target) &&
+        !toggleRef.current?.contains(target)
+      ) {
+        setExpanded(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [expanded])
 
   if (files.length === 0) return null
 
   const collapsible = files.length > COLLAPSE_THRESHOLD
   const compact = collapsible
-  const visibleFiles = collapsible && !expanded ? files.slice(0, COLLAPSE_THRESHOLD) : files
   const hiddenCount = files.length - COLLAPSE_THRESHOLD
+  const visibleFiles = files.slice(0, COLLAPSE_THRESHOLD)
 
   return (
-    <div
-      className={cn('flex flex-wrap gap-2', expanded && 'max-h-32 overflow-y-auto', className)}
-      role="list"
-      aria-label="Attached files">
-      {visibleFiles.map((file) => (
-        <FileCard
-          key={file.id}
-          file={file}
-          compact={compact}
-          onRemove={onRemove}
-          onClick={onClick}
-        />
-      ))}
-      {collapsible && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
+    <div className={cn('relative', className)}>
+      <div className="flex flex-wrap gap-2" role="list" aria-label="Attached files">
+        {(collapsible ? visibleFiles : files).map((file) => (
+          <FileCard
+            key={file.id}
+            file={file}
+            compact={compact}
+            onRemove={onRemove}
+            onClick={onClick}
+          />
+        ))}
+        {collapsible && (
+          <button
+            ref={toggleRef}
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className={cn(
+              'border-border text-muted-foreground hover:bg-accent flex flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors',
+              compact ? 'h-10 px-3 text-xs' : 'h-14 px-4 text-sm',
+            )}>
+            {expanded ? 'Show less' : `+${hiddenCount} more`}
+          </button>
+        )}
+      </div>
+
+      {expanded && (
+        <div
+          ref={popoverRef}
           className={cn(
-            'border-border text-muted-foreground hover:bg-accent flex flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors',
-            compact ? 'h-10 px-3 text-xs' : 'h-14 px-4 text-sm',
+            'bg-popover border-border absolute bottom-full left-0 z-10 mb-2 max-h-48 overflow-y-auto rounded-lg border p-2 shadow-lg',
           )}>
-          {expanded ? 'Show less' : `+${hiddenCount} more`}
-        </button>
+          <div className="flex flex-wrap gap-2" role="list" aria-label="More attached files">
+            {files.slice(COLLAPSE_THRESHOLD).map((file) => (
+              <FileCard
+                key={file.id}
+                file={file}
+                compact={compact}
+                onRemove={onRemove}
+                onClick={onClick}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
