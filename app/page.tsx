@@ -814,8 +814,10 @@ function ImageAttachmentsExample() {
             onImagePaste={handleImagePaste(setAboveImages)}
             onImageRemove={(img) => setAboveImages((prev) => prev.filter((i) => i.id !== img.id))}
             onImageClick={handleImageClick}
+            onSubmit={() => setAboveSegments([])}
             placeholder="Paste an image here..."
             minHeight={48}
+            maxHeight={200}
           />
         </div>
       </div>
@@ -830,8 +832,10 @@ function ImageAttachmentsExample() {
             onImagePaste={handleImagePaste(setBelowImages)}
             onImageRemove={(img) => setBelowImages((prev) => prev.filter((i) => i.id !== img.id))}
             onImageClick={handleImageClick}
+            onSubmit={() => setBelowSegments([])}
             placeholder="Paste an image here..."
             minHeight={48}
+            maxHeight={200}
           />
         </div>
       </div>
