@@ -39,26 +39,28 @@ const TAGS = [
 ]
 
 // ---------------------------------------------------------------------------
-// Full-featured demo
+// Comprehensive demo – showcases every capability in a single interaction
 // ---------------------------------------------------------------------------
 
-function FullDemo() {
+function ComprehensiveExample() {
   const [segments, setSegments] = useState<Segment[]>([])
   const [eventLog, setEventLog] = useState<string[]>([])
   const [submitted, setSubmitted] = useState<string>('')
   const promptRef = useRef<PromptAreaHandle>(null)
 
   const log = useCallback((msg: string) => {
-    setEventLog((prev) => [`${new Date().toLocaleTimeString()} ${msg}`, ...prev].slice(0, 50))
+    setEventLog((prev) => [`${new Date().toLocaleTimeString()} ${msg}`, ...prev].slice(0, 80))
   }, [])
 
   const triggers: TriggerConfig[] = [
+    // Dropdown trigger – start of line, inline chip style
     {
       char: '/',
       position: 'start',
       mode: 'dropdown',
       chipStyle: 'inline',
       chipClassName: 'text-violet-700 dark:text-violet-400',
+      accessibilityLabel: 'command',
       onSearch: (query) =>
         COMMANDS.filter(
           (c) =>
@@ -66,15 +68,17 @@ function FullDemo() {
             c.description.toLowerCase().includes(query.toLowerCase()),
         ),
       onSelect: (s) => {
-        log(`Selected command: /${s.label}`)
+        log(`Command selected: /${s.label}`)
         return s.label
       },
     },
+    // Dropdown trigger – anywhere, pill chip style
     {
       char: '@',
       position: 'any',
       mode: 'dropdown',
       chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+      accessibilityLabel: 'mention',
       onSearch: (query) =>
         USERS.filter(
           (u) =>
@@ -82,21 +86,37 @@ function FullDemo() {
             u.description.toLowerCase().includes(query.toLowerCase()),
         ),
       onSelect: (s) => {
-        log(`Selected mention: @${s.label}`)
+        log(`Mention selected: @${s.label}`)
         return s.label
       },
     },
+    // Dropdown trigger – anywhere, auto-resolve on space
     {
       char: '#',
       position: 'any',
       mode: 'dropdown',
       resolveOnSpace: true,
       chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+      accessibilityLabel: 'tag',
       onSearch: (query) =>
         TAGS.filter((t) => t.label.toLowerCase().includes(query.toLowerCase())),
       onSelect: (s) => {
-        log(`Selected tag: #${s.label}`)
+        log(`Tag selected: #${s.label}`)
         return s.label
+      },
+    },
+    // Callback trigger – fires handler directly, no dropdown
+    {
+      char: '!',
+      position: 'any',
+      mode: 'callback',
+      onActivate: (ctx) => {
+        log(`Callback triggered at position ${ctx.cursorPosition}`)
+        ctx.insertChip({
+          trigger: '!',
+          value: 'alert',
+          displayText: 'alert',
+        })
       },
     },
   ]
@@ -109,7 +129,7 @@ function FullDemo() {
           value={segments}
           onChange={setSegments}
           triggers={triggers}
-          placeholder="Type / for commands, @ for mentions, # for tags..."
+          placeholder="Type / for commands, @ for mentions, # for tags, ! for callback… Try **bold**, *italic*, lists with - , or paste a URL"
           onSubmit={(segs) => {
             const text = segs
               .map((s) => (s.type === 'text' ? s.text : `${s.trigger}${s.displayText}`))
@@ -121,21 +141,32 @@ function FullDemo() {
           }}
           onChipAdd={(chip) => log(`Chip added: ${chip.trigger}${chip.displayText}`)}
           onChipDelete={(chip) => log(`Chip deleted: ${chip.trigger}${chip.displayText}`)}
+          onChipClick={(chip) => log(`Chip clicked: ${chip.trigger}${chip.displayText}`)}
           onLinkClick={(url) => log(`Link clicked: ${url}`)}
+          onPaste={(data) => log(`Pasted (${data.source}): ${data.segments.length} segments`)}
+          onUndo={(segs) => log(`Undo → ${segs.length} segments`)}
+          onRedo={(segs) => log(`Redo → ${segs.length} segments`)}
           onEscape={() => log('Escape pressed')}
           autoGrow
           autoFocus
+          minHeight={64}
+          maxHeight={320}
         />
       </div>
 
-      <div className="flex gap-2">
+      {/* Imperative API buttons */}
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
-          onClick={() => {
-            promptRef.current?.focus()
-          }}>
+          onClick={() => promptRef.current?.focus()}>
           Focus
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => promptRef.current?.blur()}>
+          Blur
         </button>
         <button
           type="button"
@@ -155,8 +186,31 @@ function FullDemo() {
               value: 'system',
               displayText: 'System',
             })
+            log('Inserted @System chip via imperative API')
           }}>
-          Insert @System chip
+          Insert @System
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => {
+            promptRef.current?.insertChip({
+              trigger: '#',
+              value: 'urgent',
+              displayText: 'urgent',
+            })
+            log('Inserted #urgent chip via imperative API')
+          }}>
+          Insert #urgent
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent"
+          onClick={() => {
+            const text = promptRef.current?.getPlainText() ?? ''
+            log(`Plain text (${text.length} chars): ${text || '(empty)'}`)
+          }}>
+          Get Plain Text
         </button>
       </div>
 
@@ -180,7 +234,7 @@ function FullDemo() {
           <div className="mb-2 text-xs font-medium text-muted-foreground">Event Log</div>
           <div className="max-h-[200px] overflow-auto text-xs">
             {eventLog.length === 0 ? (
-              <span className="text-muted-foreground">No events yet...</span>
+              <span className="text-muted-foreground">No events yet — try interacting above</span>
             ) : (
               eventLog.map((entry, i) => (
                 <div key={i} className="border-b border-border/50 py-0.5">
@@ -432,16 +486,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Full demo */}
+      {/* Comprehensive example – all capabilities */}
       <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">Full Demo</h2>
+        <h2 className="text-xl font-semibold">Try It</h2>
         <p className="text-sm text-muted-foreground">
-          All 3 triggers active: <code>/</code> commands (start of line), <code>@</code>{' '}
-          mentions (anywhere), <code>#</code> tags (auto-resolve on space). Try{' '}
-          <strong>Cmd+B</strong> for bold, <strong>Cmd+I</strong> for italic, paste URLs, or
-          type <code>- </code> to start a list.
+          All capabilities in one editor. <code>/</code> commands (start of line, inline style),{' '}
+          <code>@</code> mentions (pill style), <code>#</code> tags (auto-resolve on space),{' '}
+          <code>!</code> callback mode. <strong>Cmd+B</strong> bold, <strong>Cmd+I</strong>{' '}
+          italic, <strong>Ctrl+Z</strong>/<strong>Ctrl+Shift+Z</strong> undo/redo. Type{' '}
+          <code>- </code> for lists, paste a URL for auto-linking, or use the buttons below to
+          call the imperative API. <strong>Enter</strong> to submit, <strong>Escape</strong> to
+          dismiss.
         </p>
-        <FullDemo />
+        <ComprehensiveExample />
       </div>
 
       {/* Examples */}
