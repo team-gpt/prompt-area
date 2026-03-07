@@ -146,4 +146,8 @@
     margin: 0;
     font-weight: 700;
   }
+  .action-bar {
+    /* Base styles for action-bar; Tailwind utilities handle the layout.
+       This class exists as a stable selector for consumer overrides. */
+  }
 }

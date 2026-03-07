@@ -39,6 +39,23 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "action-bar",
+      "type": "registry:component",
+      "title": "Action Bar",
+      "description": "A horizontal toolbar with left and right slots, designed to sit below a text input. Pairs with PromptArea for a complete chat input experience.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york/blocks/action-bar/action-bar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/new-york/blocks/action-bar/types.ts",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }
