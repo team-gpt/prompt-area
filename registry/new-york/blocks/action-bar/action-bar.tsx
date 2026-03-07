@@ -1,6 +1,5 @@
 'use client'
 
-import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import type { ActionBarProps } from './types'
 
@@ -32,36 +31,30 @@ import type { ActionBarProps } from './types'
  * </div>
  * ```
  */
-export const ActionBar = forwardRef<HTMLDivElement, ActionBarProps>(
-  (
-    {
-      left,
-      right,
-      className,
-      disabled = false,
-      'aria-label': ariaLabel,
-      'data-test-id': dataTestId,
-    },
-    ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        role="toolbar"
-        aria-label={ariaLabel ?? 'Action bar'}
-        aria-disabled={disabled || undefined}
-        data-test-id={dataTestId}
-        className={cn(
-          'action-bar',
-          'flex items-center justify-between gap-2 pt-2',
-          disabled && 'pointer-events-none opacity-50',
-          className,
-        )}>
-        {left && <div className="flex items-center gap-1">{left}</div>}
-        {right && <div className="ml-auto flex items-center gap-1">{right}</div>}
-      </div>
-    )
-  },
-)
-
-ActionBar.displayName = 'ActionBar'
+export function ActionBar({
+  left,
+  right,
+  className,
+  disabled = false,
+  'aria-label': ariaLabel,
+  'data-test-id': dataTestId,
+  ref,
+}: ActionBarProps & { ref?: React.Ref<HTMLDivElement> }) {
+  return (
+    <div
+      ref={ref}
+      role="toolbar"
+      aria-label={ariaLabel ?? 'Action bar'}
+      aria-disabled={disabled || undefined}
+      data-test-id={dataTestId}
+      className={cn(
+        'action-bar',
+        'flex items-center justify-between gap-2 pt-2',
+        disabled && 'pointer-events-none opacity-50',
+        className,
+      )}>
+      {left && <div className="flex items-center gap-1">{left}</div>}
+      {right && <div className="ml-auto flex items-center gap-1">{right}</div>}
+    </div>
+  )
+}

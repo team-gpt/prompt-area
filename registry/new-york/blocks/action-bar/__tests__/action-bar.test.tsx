@@ -67,10 +67,6 @@ describe('ActionBar', () => {
     expect(screen.getByRole('toolbar')).toHaveAttribute('data-test-id', 'action-bar')
   })
 
-  it('has correct displayName', () => {
-    expect(ActionBar.displayName).toBe('ActionBar')
-  })
-
   it('does not render left wrapper when left is not provided', () => {
     render(<ActionBar right={<button>Right</button>} />)
     const toolbar = screen.getByRole('toolbar')

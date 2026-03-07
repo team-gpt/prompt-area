@@ -29,12 +29,8 @@ describe('registry installability', () => {
     const mainFile = json.files.find((f: { path: string }) => f.path.endsWith('prompt-area.tsx'))
     const source = mainFile.content
 
-    // Has named export via forwardRef
-    expect(source).toContain('export const PromptArea')
-    // Has forwardRef
-    expect(source).toContain('forwardRef')
-    // Has displayName
-    expect(source).toContain('PromptArea.displayName')
+    // Has named export
+    expect(source).toContain('export function PromptArea')
     // Uses cn utility
     expect(source).toContain('@/lib/utils')
   })

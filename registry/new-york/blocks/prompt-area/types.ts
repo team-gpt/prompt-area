@@ -240,7 +240,7 @@ export type PromptAreaProps = {
 }
 
 /**
- * Ref handle exposed by PromptArea via forwardRef/useImperativeHandle.
+ * Ref handle exposed by PromptArea via useImperativeHandle.
  */
 export type PromptAreaHandle = {
   /** Focus the editable area */
