@@ -58,6 +58,7 @@
     },
     "onlyBuiltDependencies": [
       "esbuild",
+      "lefthook",
       "msw",
       "sharp",
       "unrs-resolver"
