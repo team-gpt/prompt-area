@@ -67,6 +67,8 @@ jobs:
   registry-build:
     name: Registry Build
     runs-on: ubuntu-latest
+    # On PRs: just verify the build succeeds.
+    # On push to main: build and commit the output back to the repo.
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -76,3 +78,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm registry:build
+      - name: Commit registry output
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add --force public/r/
+          if git diff --cached --quiet; then
+            echo "Registry output unchanged, nothing to commit."
+          else
+            git commit -m "chore(registry): rebuild registry JSON [skip ci]"
+            git push
+          fi
