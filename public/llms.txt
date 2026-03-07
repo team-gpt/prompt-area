@@ -1,0 +1,26 @@
+# Prompt Area
+
+> A production-grade React textarea component with trigger-based chips (@mentions, /commands, #tags), inline markdown, and file attachments. Distributed as a shadcn registry component.
+
+## Installation
+
+```bash
+npx shadcn@latest add https://prompt-area.com/r/prompt-area.json
+```
+
+## What It Does
+
+- **Trigger-based chips**: Type `@`, `/`, or `#` to invoke mentions, commands, and tags that resolve into structured chips
+- **Inline markdown**: Live preview of **bold**, *italic*, lists, and auto-linked URLs
+- **File & image attachments**: Paste screenshots or attach files with thumbnails and loading states
+- **Undo/redo**: Full history stack with Ctrl+Z / Ctrl+Shift+Z
+- **Auto-grow**: Textarea expands on focus, shrinks on blur
+- **Accessible**: ARIA labels, keyboard navigation, screen reader support
+- **Dark mode**: Full light/dark theme via CSS variables
+- **Zero extra dependencies**: Only React + shadcn/tailwind
+
+## Links
+
+- [Documentation](https://prompt-area.com)
+- [GitHub Repository](https://github.com/team-gpt/prompt-area)
+- [Full LLM Documentation](https://prompt-area.com/llms-full.txt)
