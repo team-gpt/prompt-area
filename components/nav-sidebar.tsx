@@ -404,7 +404,7 @@ function NavSidebar() {
           )}>
           <Github className="size-4 shrink-0" />
           <span className="flex-1">GitHub Repo</span>
-          <Star className="size-3.5 text-muted-foreground transition-colors group-hover:text-yellow-500" />
+          <Star className="text-muted-foreground size-3.5 transition-colors group-hover:text-yellow-500" />
         </a>
         <ThemeToggle />
       </div>
