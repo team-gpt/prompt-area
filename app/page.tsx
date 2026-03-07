@@ -1,30 +1,42 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  Github,
-  PlusCircle,
-  AtSign,
-  SquareSlash,
-  Hash,
-  Mic,
-  ArrowUp,
-  Code,
-  Type,
-  Upload,
-  Image as ImageIcon,
-  Link as LinkIcon,
-} from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
+import { Github, Link as LinkIcon } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
-import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
-import { segmentsToPlainText } from '@/registry/new-york/blocks/prompt-area/prompt-area-engine'
 import type {
   Segment,
   TriggerConfig,
   PromptAreaHandle,
-  PromptAreaImage,
-  PromptAreaFile,
 } from '@/registry/new-york/blocks/prompt-area/types'
+import { ExampleShowcase } from '@/components/example-showcase'
+import {
+  BasicExample,
+  basicCode,
+  MentionsExample,
+  mentionsCode,
+  CommandsExample,
+  commandsCode,
+  TagsExample,
+  tagsCode,
+  CallbackExample,
+  callbackCode,
+  AsyncSearchExample,
+  asyncSearchCode,
+  MarkdownExample,
+  markdownCode,
+  CopyPasteExample,
+  copyPasteCode,
+  ImageAttachmentsExample,
+  imageAttachmentsCode,
+  FileAttachmentsExample,
+  fileAttachmentsCode,
+  ActionBarFullExample,
+  actionBarFullCode,
+  ActionBarMinimalExample,
+  actionBarMinimalCode,
+  ActionBarDisabledExample,
+  actionBarDisabledCode,
+} from './examples'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -69,48 +81,6 @@ const TAGS = [
 // ---------------------------------------------------------------------------
 // Shared helpers & style constants
 // ---------------------------------------------------------------------------
-
-function isSegmentsEmpty(segments: Segment[]): boolean {
-  return (
-    segments.length === 0 ||
-    (segments.length === 1 && segments[0].type === 'text' && segments[0].text === '')
-  )
-}
-
-const ICON_BUTTON_CLASS =
-  'rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground'
-
-const SEND_BUTTON_CLASS =
-  'rounded-lg bg-primary p-1.5 text-primary-foreground hover:bg-primary/90 disabled:opacity-50'
-
-const MENU_ITEM_CLASS = 'flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent'
-
-// ActionBar trigger configs (no component-scoped deps, safe to hoist)
-const ACTION_BAR_TRIGGERS: TriggerConfig[] = [
-  {
-    char: '@',
-    position: 'any',
-    mode: 'dropdown',
-    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '/',
-    position: 'start',
-    mode: 'dropdown',
-    chipStyle: 'inline',
-    chipClassName: 'text-violet-700 dark:text-violet-400',
-    onSearch: (q) => COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '#',
-    position: 'any',
-    mode: 'dropdown',
-    resolveOnSpace: true,
-    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-  },
-]
 
 // ---------------------------------------------------------------------------
 // SectionHeading — clickable anchor heading with hash link
@@ -383,250 +353,6 @@ function ComprehensiveExample() {
 }
 
 // ---------------------------------------------------------------------------
-// Example cards
-// ---------------------------------------------------------------------------
-
-function BasicExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        placeholder="Just a text input with Enter to submit..."
-        onSubmit={() => {
-          setSegments([])
-        }}
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function MentionsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '@',
-            position: 'any',
-            mode: 'dropdown',
-            chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-            onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type @ to mention someone..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function CommandsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '/',
-            position: 'start',
-            mode: 'dropdown',
-            chipStyle: 'inline',
-            chipClassName: 'text-violet-700 dark:text-violet-400',
-            onSearch: (q) =>
-              COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type / at the start for commands..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function TagsExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        triggers={[
-          {
-            char: '#',
-            position: 'any',
-            mode: 'dropdown',
-            resolveOnSpace: true,
-            chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-            onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-          },
-        ]}
-        placeholder="Type # for tags (press space to auto-resolve)..."
-        minHeight={48}
-      />
-    </div>
-  )
-}
-
-function CallbackExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  const [lastCallback, setLastCallback] = useState('')
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-lg border p-4">
-        <PromptArea
-          value={segments}
-          onChange={setSegments}
-          triggers={[
-            {
-              char: '!',
-              position: 'any',
-              mode: 'callback',
-              onActivate: (ctx) => {
-                setLastCallback(`Activated at position ${ctx.cursorPosition}`)
-                ctx.insertChip({
-                  trigger: '!',
-                  value: 'alert',
-                  displayText: 'alert',
-                })
-              },
-            },
-          ]}
-          placeholder="Type ! to trigger a callback..."
-          minHeight={48}
-        />
-      </div>
-      {lastCallback && <div className="text-muted-foreground text-xs">{lastCallback}</div>}
-    </div>
-  )
-}
-
-function AsyncSearchExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-lg border p-4">
-        <PromptArea
-          value={segments}
-          onChange={setSegments}
-          triggers={[
-            {
-              char: '@',
-              position: 'any',
-              mode: 'dropdown',
-              searchDebounceMs: 300,
-              emptyMessage: 'No users found',
-              accessibilityLabel: 'mention',
-              onSearch: async (query, { signal }) => {
-                // Simulate a 500ms API call
-                await new Promise<void>((resolve, reject) => {
-                  const timer = setTimeout(resolve, 500)
-                  signal.addEventListener('abort', () => {
-                    clearTimeout(timer)
-                    reject(new DOMException('Aborted', 'AbortError'))
-                  })
-                })
-                return USERS.filter(
-                  (u) =>
-                    u.label.toLowerCase().includes(query.toLowerCase()) ||
-                    u.description.toLowerCase().includes(query.toLowerCase()),
-                )
-              },
-              onSearchError: (err) => {
-                // eslint-disable-next-line no-console
-                console.error('Search failed:', err)
-              },
-            },
-          ]}
-          placeholder="Type @ to search users (async, 300ms debounce)..."
-          minHeight={48}
-        />
-      </div>
-    </div>
-  )
-}
-
-function MarkdownExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={setSegments}
-        placeholder="Try **bold**, *italic*, ***both***, or start a line with - for lists..."
-        minHeight={80}
-      />
-    </div>
-  )
-}
-
-const COPY_PASTE_TRIGGERS: TriggerConfig[] = [
-  {
-    char: '@',
-    position: 'any',
-    mode: 'dropdown',
-    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
-  },
-  {
-    char: '#',
-    position: 'any',
-    mode: 'dropdown',
-    resolveOnSpace: true,
-    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
-  },
-]
-
-const INITIAL_SEGMENTS: Segment[] = [
-  { type: 'text', text: 'Hello ' },
-  { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
-  { type: 'text', text: ' please review ' },
-  { type: 'chip', trigger: '#', value: 'feature', displayText: 'feature' },
-  { type: 'text', text: ' when you can' },
-]
-
-function CopyPasteExample() {
-  const [sourceSegments, setSourceSegments] = useState<Segment[]>(INITIAL_SEGMENTS)
-  const [targetSegments, setTargetSegments] = useState<Segment[]>([])
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Source (select & copy)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={sourceSegments}
-            onChange={setSourceSegments}
-            triggers={COPY_PASTE_TRIGGERS}
-            placeholder="Type here..."
-            minHeight={60}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Target (paste here)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={targetSegments}
-            onChange={setTargetSegments}
-            triggers={COPY_PASTE_TRIGGERS}
-            placeholder="Paste content here..."
-            minHeight={60}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // All Options – a single example exercising every prop / option
 // ---------------------------------------------------------------------------
 
@@ -868,405 +594,6 @@ function AllOptionsExample() {
 }
 
 // ---------------------------------------------------------------------------
-// Image Attachments example
-// ---------------------------------------------------------------------------
-
-const SAMPLE_IMAGES: PromptAreaImage[] = [
-  {
-    id: 'sample-1',
-    url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='4' fill='%234f46e5'/%3E%3Ctext x='32' y='36' text-anchor='middle' fill='white' font-size='20'%3E%F0%9F%8C%84%3C/text%3E%3C/svg%3E",
-    alt: 'Landscape',
-  },
-  {
-    id: 'sample-2',
-    url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='4' fill='%230d9488'/%3E%3Ctext x='32' y='36' text-anchor='middle' fill='white' font-size='20'%3E%F0%9F%93%8A%3C/text%3E%3C/svg%3E",
-    alt: 'Chart',
-  },
-]
-
-function ImageAttachmentsExample() {
-  const [aboveSegments, setAboveSegments] = useState<Segment[]>([])
-  const [belowSegments, setBelowSegments] = useState<Segment[]>([])
-  const [aboveImages, setAboveImages] = useState<PromptAreaImage[]>(SAMPLE_IMAGES)
-  const [belowImages, setBelowImages] = useState<PromptAreaImage[]>([])
-
-  const [clickedImage, setClickedImage] = useState<string | null>(null)
-
-  const handleImagePaste = useCallback(
-    (setFn: React.Dispatch<React.SetStateAction<PromptAreaImage[]>>) => (file: File) => {
-      const id = crypto.randomUUID()
-      const previewUrl = URL.createObjectURL(file)
-      setFn((prev) => [...prev, { id, url: previewUrl, alt: file.name, loading: true }])
-      setTimeout(() => {
-        setFn((prev) => prev.map((img) => (img.id === id ? { ...img, loading: false } : img)))
-      }, 1500)
-    },
-    [],
-  )
-
-  const handleImageClick = useCallback((image: PromptAreaImage) => {
-    setClickedImage(image.alt ?? image.id)
-  }, [])
-
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Images Above (default)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={aboveSegments}
-            onChange={setAboveSegments}
-            images={aboveImages}
-            imagePosition="above"
-            onImagePaste={handleImagePaste(setAboveImages)}
-            onImageRemove={(img) => setAboveImages((prev) => prev.filter((i) => i.id !== img.id))}
-            onImageClick={handleImageClick}
-            onSubmit={() => setAboveSegments([])}
-            placeholder="Paste an image here..."
-            minHeight={48}
-            maxHeight={200}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Images Below</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={belowSegments}
-            onChange={setBelowSegments}
-            images={belowImages}
-            imagePosition="below"
-            onImagePaste={handleImagePaste(setBelowImages)}
-            onImageRemove={(img) => setBelowImages((prev) => prev.filter((i) => i.id !== img.id))}
-            onImageClick={handleImageClick}
-            onSubmit={() => setBelowSegments([])}
-            placeholder="Paste an image here..."
-            minHeight={48}
-            maxHeight={200}
-          />
-        </div>
-      </div>
-      {clickedImage && <div className="text-muted-foreground text-xs">Clicked: {clickedImage}</div>}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// File Attachments example
-// ---------------------------------------------------------------------------
-
-const SAMPLE_FILES: PromptAreaFile[] = [
-  { id: 'file-1', name: 'quarterly-report.pdf', size: 2_458_000, type: 'application/pdf' },
-  {
-    id: 'file-2',
-    name: 'user-data-export-2024-final-version.csv',
-    size: 847_200,
-    type: 'text/csv',
-  },
-  { id: 'file-3', name: 'config.json', size: 1_240, type: 'application/json' },
-]
-
-const MANY_FILES: PromptAreaFile[] = [
-  { id: 'mf-1', name: 'presentation.pdf', size: 5_200_000, type: 'application/pdf' },
-  { id: 'mf-2', name: 'budget-2024.csv', size: 320_000, type: 'text/csv' },
-  { id: 'mf-3', name: 'notes.txt', size: 4_800, type: 'text/plain' },
-  {
-    id: 'mf-4',
-    name: 'very-long-filename-that-should-be-truncated-gracefully.tsx',
-    size: 12_400,
-    type: 'text/plain',
-  },
-  { id: 'mf-5', name: 'logo.png', size: 98_000, type: 'image/png' },
-  { id: 'mf-6', name: 'schema.sql', size: 6_700, type: 'text/plain' },
-]
-
-function FileAttachmentsExample() {
-  const [normalSegments, setNormalSegments] = useState<Segment[]>([])
-  const [compactSegments, setCompactSegments] = useState<Segment[]>([])
-  const [normalFiles, setNormalFiles] = useState<PromptAreaFile[]>(SAMPLE_FILES)
-  const [compactFiles, setCompactFiles] = useState<PromptAreaFile[]>(MANY_FILES)
-  const [clickedFile, setClickedFile] = useState<string | null>(null)
-
-  const handleFileClick = useCallback((file: PromptAreaFile) => {
-    setClickedFile(file.name)
-  }, [])
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">Normal (1–3 files)</div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={normalSegments}
-            onChange={setNormalSegments}
-            files={normalFiles}
-            filePosition="above"
-            onFileRemove={(f) => setNormalFiles((prev) => prev.filter((x) => x.id !== f.id))}
-            onFileClick={handleFileClick}
-            onSubmit={() => setNormalSegments([])}
-            placeholder="Attach files to your message..."
-            minHeight={48}
-            maxHeight={200}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground text-xs">
-          Many files (4+ files, collapsible with expand)
-        </div>
-        <div className="rounded-lg border p-4">
-          <PromptArea
-            value={compactSegments}
-            onChange={setCompactSegments}
-            files={compactFiles}
-            filePosition="above"
-            onFileRemove={(f) => setCompactFiles((prev) => prev.filter((x) => x.id !== f.id))}
-            onFileClick={handleFileClick}
-            onSubmit={() => setCompactSegments([])}
-            placeholder="Click +N more to expand all files..."
-            minHeight={48}
-            maxHeight={200}
-          />
-        </div>
-      </div>
-      {clickedFile && <div className="text-muted-foreground text-xs">Clicked: {clickedFile}</div>}
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// ActionBar examples
-// ---------------------------------------------------------------------------
-
-function ActionBarFullExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  const [markdownEnabled, setMarkdownEnabled] = useState(false)
-  const [submitted, setSubmitted] = useState('')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const promptRef = useRef<PromptAreaHandle>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  const isEmpty = isSegmentsEmpty(segments)
-
-  // Close menu on click outside
-  useEffect(() => {
-    if (!menuOpen) return
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [menuOpen])
-
-  const handleSubmit = useCallback(() => {
-    if (isSegmentsEmpty(segments)) return
-    setSubmitted(segmentsToPlainText(segments))
-    promptRef.current?.clear()
-    setSegments([])
-  }, [segments])
-
-  const insertTrigger = useCallback((char: string) => {
-    promptRef.current?.focus()
-    // Uses deprecated execCommand as PromptAreaHandle does not yet expose insertText
-    requestAnimationFrame(() => {
-      document.execCommand('insertText', false, char)
-    })
-  }, [])
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="rounded-lg border p-4">
-        <PromptArea
-          ref={promptRef}
-          value={segments}
-          onChange={setSegments}
-          triggers={ACTION_BAR_TRIGGERS}
-          placeholder="Type a message..."
-          onSubmit={handleSubmit}
-          markdown={markdownEnabled}
-          autoGrow
-          minHeight={48}
-          maxHeight={320}
-        />
-        <ActionBar
-          left={
-            <>
-              <div className="relative" ref={menuRef}>
-                <button
-                  type="button"
-                  className={ICON_BUTTON_CLASS}
-                  aria-label="Attach"
-                  onClick={() => setMenuOpen((v) => !v)}>
-                  <PlusCircle className="size-4" />
-                </button>
-                {menuOpen && (
-                  <div className="bg-popover absolute top-full left-0 z-10 mt-1 flex w-max flex-col rounded-md border p-1 shadow-md">
-                    <button
-                      type="button"
-                      className={MENU_ITEM_CLASS}
-                      onClick={() => setMenuOpen(false)}>
-                      <Upload className="size-4" />
-                      Upload file
-                    </button>
-                    <button
-                      type="button"
-                      className={MENU_ITEM_CLASS}
-                      onClick={() => setMenuOpen(false)}>
-                      <ImageIcon className="size-4" />
-                      Upload image
-                    </button>
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className={ICON_BUTTON_CLASS}
-                aria-label="Mention"
-                onClick={() => insertTrigger('@')}>
-                <AtSign className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={ICON_BUTTON_CLASS}
-                aria-label="Commands"
-                onClick={() => {
-                  promptRef.current?.focus()
-                  requestAnimationFrame(() => {
-                    const sel = window.getSelection()
-                    const el = document.activeElement
-                    if (sel && el) {
-                      sel.collapse(el, 0)
-                    }
-                    document.execCommand('insertText', false, '/')
-                  })
-                }}>
-                <SquareSlash className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={ICON_BUTTON_CLASS}
-                aria-label="Tags"
-                onClick={() => insertTrigger('#')}>
-                <Hash className="size-4" />
-              </button>
-            </>
-          }
-          right={
-            <>
-              <button
-                type="button"
-                className={`rounded-md p-1.5 ${
-                  markdownEnabled
-                    ? 'bg-accent text-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                }`}
-                aria-label="Toggle markdown"
-                onClick={() => setMarkdownEnabled((v) => !v)}>
-                {markdownEnabled ? <Code className="size-4" /> : <Type className="size-4" />}
-              </button>
-              <button type="button" className={ICON_BUTTON_CLASS} aria-label="Voice input">
-                <Mic className="size-4" />
-              </button>
-              <button
-                type="button"
-                className={SEND_BUTTON_CLASS}
-                aria-label="Send message"
-                disabled={isEmpty}
-                onClick={handleSubmit}>
-                <ArrowUp className="size-4" />
-              </button>
-            </>
-          }
-        />
-      </div>
-      {submitted && (
-        <div className="bg-muted/50 rounded-lg border p-3">
-          <div className="text-muted-foreground mb-1 text-xs font-medium">Submitted:</div>
-          <div className="text-sm">{submitted}</div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ActionBarMinimalExample() {
-  const [segments, setSegments] = useState<Segment[]>([])
-  const promptRef = useRef<PromptAreaHandle>(null)
-
-  const isEmpty = isSegmentsEmpty(segments)
-
-  const handleSubmit = useCallback(() => {
-    if (isSegmentsEmpty(segments)) return
-    promptRef.current?.clear()
-    setSegments([])
-  }, [segments])
-
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        ref={promptRef}
-        value={segments}
-        onChange={setSegments}
-        placeholder="Type a message..."
-        onSubmit={handleSubmit}
-        minHeight={48}
-      />
-      <ActionBar
-        right={
-          <button
-            type="button"
-            className={SEND_BUTTON_CLASS}
-            aria-label="Send message"
-            disabled={isEmpty}
-            onClick={handleSubmit}>
-            <ArrowUp className="size-4" />
-          </button>
-        }
-      />
-    </div>
-  )
-}
-
-function ActionBarDisabledExample() {
-  const [segments] = useState<Segment[]>([{ type: 'text', text: 'This input is disabled...' }])
-
-  return (
-    <div className="rounded-lg border p-4">
-      <PromptArea
-        value={segments}
-        onChange={() => {}}
-        placeholder="Disabled..."
-        disabled
-        minHeight={48}
-      />
-      <ActionBar
-        disabled
-        left={
-          <>
-            <button type="button" className="text-muted-foreground rounded-md p-1.5">
-              <PlusCircle className="size-4" />
-            </button>
-            <button type="button" className="text-muted-foreground rounded-md p-1.5">
-              <AtSign className="size-4" />
-            </button>
-          </>
-        }
-        right={
-          <button
-            type="button"
-            className="bg-primary text-primary-foreground rounded-lg p-1.5"
-            disabled>
-            <ArrowUp className="size-4" />
-          </button>
-        }
-      />
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Dark theme preview
 // ---------------------------------------------------------------------------
 
@@ -1396,7 +723,9 @@ export default function Home() {
         <div id="example-basic" className="flex scroll-mt-16 flex-col gap-2">
           <SectionHeading id="example-basic">Basic (no triggers)</SectionHeading>
           <p className="text-muted-foreground text-xs">Simple text input with Enter to submit.</p>
-          <BasicExample />
+          <ExampleShowcase code={basicCode}>
+            <BasicExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-mentions" className="flex scroll-mt-16 flex-col gap-2">
@@ -1404,7 +733,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>@</code> followed by a name to search users.
           </p>
-          <MentionsExample />
+          <ExampleShowcase code={mentionsCode}>
+            <MentionsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-commands" className="flex scroll-mt-16 flex-col gap-2">
@@ -1412,7 +743,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>/</code> at the beginning of a line for commands.
           </p>
-          <CommandsExample />
+          <ExampleShowcase code={commandsCode}>
+            <CommandsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-tags" className="flex scroll-mt-16 flex-col gap-2">
@@ -1420,7 +753,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>#tag</code> and press space to auto-create a chip. Backspace reverts it.
           </p>
-          <TagsExample />
+          <ExampleShowcase code={tagsCode}>
+            <TagsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-callback" className="flex scroll-mt-16 flex-col gap-2">
@@ -1428,7 +763,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Type <code>!</code> to fire a callback that programmatically inserts a chip.
           </p>
-          <CallbackExample />
+          <ExampleShowcase code={callbackCode}>
+            <CallbackExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-async" className="flex scroll-mt-16 flex-col gap-2">
@@ -1437,7 +774,9 @@ export default function Home() {
             Type <code>@</code> to trigger an async search with 300ms debounce, AbortSignal
             cancellation, and an empty-state message. Results load after a simulated 500ms delay.
           </p>
-          <AsyncSearchExample />
+          <ExampleShowcase code={asyncSearchCode}>
+            <AsyncSearchExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-markdown" className="flex scroll-mt-16 flex-col gap-2">
@@ -1447,7 +786,9 @@ export default function Home() {
             see inline styling. Use <strong>Cmd+B</strong> / <strong>Cmd+I</strong> shortcuts. Start
             a line with <code>- </code> or <code>* </code> for auto-formatted lists (Tab to indent).
           </p>
-          <MarkdownExample />
+          <ExampleShowcase code={markdownCode}>
+            <MarkdownExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-copy-paste" className="flex scroll-mt-16 flex-col gap-2">
@@ -1457,7 +798,9 @@ export default function Home() {
             <strong>Cmd+V</strong> in the target to paste — chips are preserved. Pasting plain text
             like <code>@alice #bug</code> from outside auto-resolves matching triggers.
           </p>
-          <CopyPasteExample />
+          <ExampleShowcase code={copyPasteCode}>
+            <CopyPasteExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-images" className="flex scroll-mt-16 flex-col gap-2">
@@ -1467,17 +810,21 @@ export default function Home() {
             upload simulation. Click &times; to remove. Use <code>imagePosition</code> to control
             placement.
           </p>
-          <ImageAttachmentsExample />
+          <ExampleShowcase code={imageAttachmentsCode}>
+            <ImageAttachmentsExample />
+          </ExampleShowcase>
         </div>
 
         <div id="example-files" className="flex scroll-mt-16 flex-col gap-2">
-          <h3 className="text-sm font-medium">File Attachments</h3>
+          <SectionHeading id="example-files">File Attachments</SectionHeading>
           <p className="text-muted-foreground text-xs">
             Attach files with icon, name, and metadata. Cards show a file-type icon, truncated
             filename, and extension/size. With 4+ files, only the first 3 are shown with a &ldquo;+N
             more&rdquo; button to expand. Click &times; to remove.
           </p>
-          <FileAttachmentsExample />
+          <ExampleShowcase code={fileAttachmentsCode}>
+            <FileAttachmentsExample />
+          </ExampleShowcase>
         </div>
       </div>
 
@@ -1503,7 +850,9 @@ export default function Home() {
             command, and <code>#</code> tag buttons. Right slot with markdown toggle, microphone,
             and send button. The send button submits the message just like pressing Enter.
           </p>
-          <ActionBarFullExample />
+          <ExampleShowcase code={actionBarFullCode}>
+            <ActionBarFullExample />
+          </ExampleShowcase>
         </div>
 
         <div id="action-bar-minimal" className="flex scroll-mt-16 flex-col gap-2">
@@ -1511,7 +860,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Just a send button on the right. The simplest composition.
           </p>
-          <ActionBarMinimalExample />
+          <ExampleShowcase code={actionBarMinimalCode}>
+            <ActionBarMinimalExample />
+          </ExampleShowcase>
         </div>
 
         <div id="action-bar-disabled" className="flex scroll-mt-16 flex-col gap-2">
@@ -1519,7 +870,9 @@ export default function Home() {
           <p className="text-muted-foreground text-xs">
             Both PromptArea and ActionBar in disabled state.
           </p>
-          <ActionBarDisabledExample />
+          <ExampleShowcase code={actionBarDisabledCode}>
+            <ActionBarDisabledExample />
+          </ExampleShowcase>
         </div>
       </div>
 
