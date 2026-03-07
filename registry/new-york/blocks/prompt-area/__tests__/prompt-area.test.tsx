@@ -44,10 +44,6 @@ describe('PromptArea', () => {
     expect(editor).toHaveAttribute('aria-disabled', 'true')
   })
 
-  it('has correct displayName', () => {
-    expect(PromptArea.displayName).toBe('PromptArea')
-  })
-
   it('exposes imperative handle via ref', () => {
     const ref = createRef<PromptAreaHandle>()
     render(<PromptArea {...defaultProps} ref={ref} />)

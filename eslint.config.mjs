@@ -1,18 +1,15 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
+import reactHooks from 'eslint-plugin-react-hooks'
 
 const eslintConfig = [
   { ignores: ['next-env.d.ts', '.next/**'] },
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
   {
+    plugins: {
+      'react-hooks': reactHooks,
+    },
     rules: {
       'react-hooks/immutability': 'warn',
     },
