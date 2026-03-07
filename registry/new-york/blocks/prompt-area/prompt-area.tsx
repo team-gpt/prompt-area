@@ -6,6 +6,7 @@ import type { PromptAreaProps, PromptAreaHandle } from './types'
 import { usePromptArea } from './use-prompt-area'
 import { BLUR_DELAY_MS } from './use-prompt-area-events'
 import { TriggerPopover } from './trigger-popover'
+import { ImageStrip } from './image-strip'
 
 /**
  * PromptArea - A lightweight rich text input with trigger support.
@@ -56,6 +57,10 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
       autoGrow = false,
       'aria-label': ariaLabel,
       'data-test-id': dataTestId,
+      images = [],
+      imagePosition = 'above',
+      onImagePaste,
+      onImageRemove,
     },
     ref,
   ) => {
@@ -86,6 +91,7 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
       onPaste,
       onUndo,
       onRedo,
+      onImagePaste,
     })
 
     // Expose imperative handle via ref
@@ -172,8 +178,14 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
     const isEmpty =
       value.length === 0 || (value.length === 1 && value[0].type === 'text' && value[0].text === '')
 
+    const imageStrip = images.length > 0 ? (
+      <ImageStrip images={images} onRemove={onImageRemove} />
+    ) : null
+
     return (
       <div className={cn('prompt-area-container relative', className)}>
+        {imagePosition === 'above' && imageStrip}
+
         {/* The contentEditable surface */}
         <div
           ref={editorRef}
@@ -213,6 +225,8 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
             {placeholder}
           </div>
         )}
+
+        {imagePosition === 'below' && imageStrip}
 
         {/* Trigger suggestion popover */}
         {activeTrigger && activeTrigger.config.mode === 'dropdown' && (

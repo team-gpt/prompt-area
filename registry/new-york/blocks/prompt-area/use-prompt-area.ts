@@ -63,6 +63,7 @@ type UsePromptAreaOptions = {
   onPaste?: (data: { segments: Segment[]; source: 'internal' | 'external' }) => void
   onUndo?: (segments: Segment[]) => void
   onRedo?: (segments: Segment[]) => void
+  onImagePaste?: (file: File) => void
 }
 
 type UsePromptAreaReturn = {
@@ -110,6 +111,7 @@ export function usePromptArea({
   onPaste,
   onUndo,
   onRedo,
+  onImagePaste,
 }: UsePromptAreaOptions): UsePromptAreaReturn {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const [activeTrigger, setActiveTrigger] = useState<ActiveTrigger | null>(null)
@@ -367,6 +369,7 @@ export function usePromptArea({
     onUndo,
     onRedo,
     onChipAdd,
+    onImagePaste,
   })
 
   // -----------------------------------------------------------------------

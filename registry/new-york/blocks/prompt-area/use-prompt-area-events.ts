@@ -40,6 +40,7 @@ type EventHandlerDeps = {
   onUndo?: (segments: Segment[]) => void
   onRedo?: (segments: Segment[]) => void
   onChipAdd?: (chip: ChipSegment) => void
+  onImagePaste?: (file: File) => void
 }
 
 type PromptAreaEventHandlers = {
@@ -92,6 +93,7 @@ export function usePromptAreaEvents(deps: EventHandlerDeps): PromptAreaEventHand
     onUndo,
     onRedo,
     onChipAdd,
+    onImagePaste,
   } = deps
 
   const isComposing = useRef(false)
@@ -148,6 +150,15 @@ export function usePromptAreaEvents(deps: EventHandlerDeps): PromptAreaEventHand
 
       const editor = editorRef.current
       if (!editor) return
+
+      // Check for image files in clipboard before processing text
+      const imageFile = Array.from(e.clipboardData.files).find((f) =>
+        f.type.startsWith('image/'),
+      )
+      if (imageFile) {
+        onImagePaste?.(imageFile)
+        return
+      }
 
       // Record undo snapshot
       const currentSegments = readSegmentsFromDOM()
@@ -260,6 +271,7 @@ export function usePromptAreaEvents(deps: EventHandlerDeps): PromptAreaEventHand
       triggers,
       onPasteCallback,
       onChipAdd,
+      onImagePaste,
     ],
   )
 
