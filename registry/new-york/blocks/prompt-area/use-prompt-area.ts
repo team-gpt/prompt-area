@@ -41,6 +41,7 @@ import {
   normalizeEditorDOM,
   decorateURLsInEditor,
   decorateMarkdownInEditor,
+  decorateBulletsInEditor,
   safeJsonStringify,
   getSelectionRange,
 } from './dom-helpers'
@@ -256,9 +257,10 @@ export function usePromptArea({
         editor.appendChild(sentinel)
       }
 
-      // Decorate URLs and markdown formatting in text nodes
+      // Decorate URLs, markdown formatting, and bullets in text nodes
       decorateURLsInEditor(editor)
       if (markdownEnabled) decorateMarkdownInEditor(editor)
+      if (markdownEnabled) decorateBulletsInEditor(editor)
 
       if (savedCursor) {
         restoreCursorPosition(editor, savedCursor)
@@ -471,10 +473,11 @@ export function usePromptArea({
       undoTimer.current = null
     }, UNDO_DEBOUNCE_MS)
 
-    // Decorate URLs and markdown formatting in text nodes
+    // Decorate URLs, markdown formatting, and bullets in text nodes
     if (editor) {
       decorateURLsInEditor(editor)
       if (markdownEnabled) decorateMarkdownInEditor(editor)
+      if (markdownEnabled) decorateBulletsInEditor(editor)
       if (savedCursorOffset !== null) {
         setCursorAtOffset(editor, savedCursorOffset)
       }
