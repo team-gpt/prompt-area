@@ -64,6 +64,7 @@ type UsePromptAreaOptions = {
   onUndo?: (segments: Segment[]) => void
   onRedo?: (segments: Segment[]) => void
   onImagePaste?: (file: File) => void
+  markdown?: boolean
 }
 
 type UsePromptAreaReturn = {
@@ -112,6 +113,7 @@ export function usePromptArea({
   onUndo,
   onRedo,
   onImagePaste,
+  markdown: markdownEnabled = true,
 }: UsePromptAreaOptions): UsePromptAreaReturn {
   const editorRef = useRef<HTMLDivElement | null>(null)
   const [activeTrigger, setActiveTrigger] = useState<ActiveTrigger | null>(null)
@@ -243,7 +245,7 @@ export function usePromptArea({
 
       // Decorate URLs and markdown formatting in text nodes
       decorateURLsInEditor(editor)
-      decorateMarkdownInEditor(editor)
+      if (markdownEnabled) decorateMarkdownInEditor(editor)
 
       if (savedCursor) {
         restoreCursorPosition(editor, savedCursor)
@@ -252,7 +254,7 @@ export function usePromptArea({
       lastRenderedValue.current = segments
       isSyncing.current = false
     },
-    [triggers],
+    [triggers, markdownEnabled],
   )
 
   // -----------------------------------------------------------------------
@@ -382,6 +384,30 @@ export function usePromptArea({
     renderSegmentsToDOM(value)
   }, [value, renderSegmentsToDOM])
 
+  // Re-render when markdown mode changes to apply/strip decorations
+  // Also convert bullet characters: • ↔ - in text segments
+  const prevMarkdown = useRef(markdownEnabled)
+  useEffect(() => {
+    if (prevMarkdown.current === markdownEnabled) return
+    prevMarkdown.current = markdownEnabled
+
+    const converted = value.map((seg) => {
+      if (seg.type !== 'text') return seg
+      // markdown OFF: replace "• " with "- " | markdown ON: replace "- " with "• "
+      const newText = markdownEnabled
+        ? seg.text.replace(/(^|\n)(\s*)- /g, '$1$2\u2022 ')
+        : seg.text.replace(/(^|\n)(\s*)\u2022 /g, '$1$2- ')
+      return newText === seg.text ? seg : { ...seg, text: newText }
+    })
+
+    const changed = converted.some((seg, i) => seg !== value[i])
+    if (changed) {
+      onChange(converted)
+    } else {
+      renderSegmentsToDOM(value)
+    }
+  }, [markdownEnabled, renderSegmentsToDOM, value, onChange])
+
   // Clean up undo debounce timer on unmount
   useEffect(() => {
     return () => {
@@ -418,7 +444,7 @@ export function usePromptArea({
     const segments = readSegmentsFromDOM()
 
     // Check for list auto-formatting (e.g., "- " -> "bullet ")
-    if (editor && savedCursorOffset !== null) {
+    if (markdownEnabled && editor && savedCursorOffset !== null) {
       const formatted = autoFormatListPrefix(segments, savedCursorOffset)
       if (formatted) {
         lastRenderedValue.current = formatted.segments
@@ -450,7 +476,7 @@ export function usePromptArea({
     // Decorate URLs and markdown formatting in text nodes
     if (editor) {
       decorateURLsInEditor(editor)
-      decorateMarkdownInEditor(editor)
+      if (markdownEnabled) decorateMarkdownInEditor(editor)
       if (savedCursorOffset !== null) {
         setCursorAtOffset(editor, savedCursorOffset)
       }
@@ -462,6 +488,7 @@ export function usePromptArea({
     readSegmentsFromDOM,
     runTriggerDetection,
     renderSegmentsToDOM,
+    markdownEnabled,
     events.isComposing,
     events.pushUndo,
   ])
@@ -766,7 +793,12 @@ export function usePromptArea({
       if (events.handleKeyDownForUndoRedo(e)) return
 
       // 1.5 Markdown formatting shortcuts (Cmd+B bold, Cmd+I italic)
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && (e.key === 'b' || e.key === 'i')) {
+      if (
+        markdownEnabled &&
+        (e.metaKey || e.ctrlKey) &&
+        !e.shiftKey &&
+        (e.key === 'b' || e.key === 'i')
+      ) {
         e.preventDefault()
         const editor = editorRef.current
         if (!editor) return
@@ -826,7 +858,7 @@ export function usePromptArea({
       }
 
       // 2.6. Tab/Shift+Tab for list indentation (only when trigger dropdown is NOT open)
-      if (e.key === 'Tab' && !activeTrigger) {
+      if (markdownEnabled && e.key === 'Tab' && !activeTrigger) {
         const editor = editorRef.current
         if (editor) {
           const segments = readSegmentsFromDOM()
@@ -873,9 +905,9 @@ export function usePromptArea({
 
       // 3. Submit on Enter (without Shift), skip during IME
       if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-        // 3a. Check for list continuation first
+        // 3a. Check for list continuation first (only when markdown is enabled)
         const editor = editorRef.current
-        if (editor) {
+        if (markdownEnabled && editor) {
           const segments = readSegmentsFromDOM()
           const cursorPos = getCursorOffset(editor)
           if (cursorPos !== null) {
@@ -935,7 +967,7 @@ export function usePromptArea({
         if (editor) {
           const segments = readSegmentsFromDOM()
           const cursorPos = getCursorOffset(editor)
-          if (cursorPos !== null) {
+          if (markdownEnabled && cursorPos !== null) {
             const result = removeListPrefix(segments, cursorPos)
             if (result) {
               e.preventDefault()
@@ -971,6 +1003,7 @@ export function usePromptArea({
       readSegmentsFromDOM,
       onChange,
       renderSegmentsToDOM,
+      markdownEnabled,
       dismissTrigger,
       handleChipBackspace,
       handleChipForwardDelete,
