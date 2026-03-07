@@ -62,6 +62,7 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
       imagePosition = 'above',
       onImagePaste,
       onImageRemove,
+      onImageClick,
     },
     ref,
   ) => {
@@ -180,53 +181,56 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
     const isEmpty =
       value.length === 0 || (value.length === 1 && value[0].type === 'text' && value[0].text === '')
 
-    const imageStrip = images.length > 0 ? (
-      <ImageStrip images={images} onRemove={onImageRemove} />
-    ) : null
+    const imageStrip =
+      images.length > 0 ? (
+        <ImageStrip images={images} onRemove={onImageRemove} onClick={onImageClick} />
+      ) : null
 
     return (
       <div className={cn('prompt-area-container relative', className)}>
         {imagePosition === 'above' && imageStrip}
 
-        {/* The contentEditable surface */}
-        <div
-          ref={editorRef}
-          contentEditable={!disabled}
-          suppressContentEditableWarning
-          role="textbox"
-          aria-label={ariaLabel ?? 'Text input'}
-          aria-multiline="true"
-          aria-disabled={disabled}
-          data-test-id={dataTestId}
-          className={cn(
-            'prompt-area-editor',
-            'w-full min-w-0 break-words whitespace-pre-wrap outline-none',
-            'text-sm leading-relaxed',
-            disabled && 'cursor-not-allowed opacity-50',
-          )}
-          style={editorStyle}
-          onFocus={handleFocus}
-          onInput={autoGrow ? handleInputWithGrow : handleInput}
-          onKeyDown={handleKeyDown}
-          onClick={handleClick}
-          onPaste={eventHandlers.onPaste}
-          onCopy={eventHandlers.onCopy}
-          onCut={eventHandlers.onCut}
-          onDrop={eventHandlers.onDrop}
-          onDragOver={eventHandlers.onDragOver}
-          onCompositionStart={eventHandlers.onCompositionStart}
-          onCompositionEnd={eventHandlers.onCompositionEnd}
-          onBlur={autoGrow ? handleBlurWithShrink : eventHandlers.onBlur}
-        />
-
-        {/* Placeholder overlay */}
-        {isEmpty && placeholder && (
+        {/* Editor + placeholder wrapper */}
+        <div className="relative">
           <div
-            className="text-muted-foreground pointer-events-none absolute top-0 left-0 text-sm leading-relaxed select-none"
-            aria-hidden="true">
-            {placeholder}
-          </div>
-        )}
+            ref={editorRef}
+            contentEditable={!disabled}
+            suppressContentEditableWarning
+            role="textbox"
+            aria-label={ariaLabel ?? 'Text input'}
+            aria-multiline="true"
+            aria-disabled={disabled}
+            data-test-id={dataTestId}
+            className={cn(
+              'prompt-area-editor',
+              'w-full min-w-0 break-words whitespace-pre-wrap outline-none',
+              'text-sm leading-relaxed',
+              disabled && 'cursor-not-allowed opacity-50',
+            )}
+            style={editorStyle}
+            onFocus={handleFocus}
+            onInput={autoGrow ? handleInputWithGrow : handleInput}
+            onKeyDown={handleKeyDown}
+            onClick={handleClick}
+            onPaste={eventHandlers.onPaste}
+            onCopy={eventHandlers.onCopy}
+            onCut={eventHandlers.onCut}
+            onDrop={eventHandlers.onDrop}
+            onDragOver={eventHandlers.onDragOver}
+            onCompositionStart={eventHandlers.onCompositionStart}
+            onCompositionEnd={eventHandlers.onCompositionEnd}
+            onBlur={autoGrow ? handleBlurWithShrink : eventHandlers.onBlur}
+          />
+
+          {/* Placeholder overlay */}
+          {isEmpty && placeholder && (
+            <div
+              className="text-muted-foreground pointer-events-none absolute top-0 left-0 text-sm leading-relaxed select-none"
+              aria-hidden="true">
+              {placeholder}
+            </div>
+          )}
+        </div>
 
         {imagePosition === 'below' && imageStrip}
 

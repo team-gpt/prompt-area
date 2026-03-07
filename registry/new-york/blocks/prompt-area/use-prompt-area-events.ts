@@ -152,9 +152,13 @@ export function usePromptAreaEvents(deps: EventHandlerDeps): PromptAreaEventHand
       if (!editor) return
 
       // Check for image files in clipboard before processing text
-      const imageFile = Array.from(e.clipboardData.files).find((f) =>
-        f.type.startsWith('image/'),
-      )
+      // Some browsers/OSes provide pasted images via `items` instead of `files` (e.g. screenshots)
+      const imageFile =
+        Array.from(e.clipboardData.files).find((f) => f.type.startsWith('image/')) ??
+        (() => {
+          const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith('image/'))
+          return item?.getAsFile() ?? null
+        })()
       if (imageFile) {
         onImagePaste?.(imageFile)
         return

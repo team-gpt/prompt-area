@@ -6,9 +6,10 @@ import type { PromptAreaImage } from './types'
 type ImageStripProps = {
   images: PromptAreaImage[]
   onRemove?: (image: PromptAreaImage) => void
+  onClick?: (image: PromptAreaImage) => void
 }
 
-export function ImageStrip({ images, onRemove }: ImageStripProps) {
+export function ImageStrip({ images, onRemove, onClick }: ImageStripProps) {
   if (images.length === 0) return null
 
   return (
@@ -17,8 +18,11 @@ export function ImageStrip({ images, onRemove }: ImageStripProps) {
         <div
           key={image.id}
           role="listitem"
-          className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-border"
-        >
+          className={cn(
+            'border-border relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border',
+            onClick && 'cursor-pointer',
+          )}
+          onClick={() => onClick?.(image)}>
           <img
             src={image.url}
             alt={image.alt ?? 'Attached image'}
@@ -34,12 +38,11 @@ export function ImageStrip({ images, onRemove }: ImageStripProps) {
               type="button"
               onClick={() => onRemove(image)}
               className={cn(
-                'absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center',
+                'absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center',
                 'rounded-full bg-black/60 text-white hover:bg-black/80',
                 'text-xs leading-none transition-colors',
               )}
-              aria-label={`Remove ${image.alt ?? 'image'}`}
-            >
+              aria-label={`Remove ${image.alt ?? 'image'}`}>
               ×
             </button>
           )}

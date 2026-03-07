@@ -212,6 +212,8 @@ export type PromptAreaProps = {
   onImagePaste?: (file: File) => void
   /** Called when the user clicks the remove button on an image */
   onImageRemove?: (image: PromptAreaImage) => void
+  /** Called when the user clicks an image thumbnail */
+  onImageClick?: (image: PromptAreaImage) => void
 }
 
 /**

@@ -76,14 +76,13 @@ describe('PromptArea', () => {
     ]
 
     it('renders images above the editor by default', () => {
-      const { container } = render(
-        <PromptArea {...defaultProps} images={sampleImages} />,
-      )
+      const { container } = render(<PromptArea {...defaultProps} images={sampleImages} />)
       const imageList = screen.getByRole('list', { name: 'Attached images' })
       const editor = screen.getByRole('textbox')
-      // Image list should come before the editor in DOM order
+      // Image list should come before the editor wrapper in DOM order
       const children = Array.from(container.firstElementChild!.children)
-      expect(children.indexOf(imageList)).toBeLessThan(children.indexOf(editor))
+      const editorWrapper = editor.closest('.prompt-area-container > div:not([role="list"])')!
+      expect(children.indexOf(imageList)).toBeLessThan(children.indexOf(editorWrapper))
     })
 
     it('renders images below the editor when imagePosition is "below"', () => {
@@ -93,7 +92,8 @@ describe('PromptArea', () => {
       const imageList = screen.getByRole('list', { name: 'Attached images' })
       const editor = screen.getByRole('textbox')
       const children = Array.from(container.firstElementChild!.children)
-      expect(children.indexOf(imageList)).toBeGreaterThan(children.indexOf(editor))
+      const editorWrapper = editor.closest('.prompt-area-container > div:not([role="list"])')!
+      expect(children.indexOf(imageList)).toBeGreaterThan(children.indexOf(editorWrapper))
     })
 
     it('does not render image strip when images is empty', () => {
@@ -109,9 +109,7 @@ describe('PromptArea', () => {
     it('calls onImageRemove when clicking X on an image', async () => {
       const user = userEvent.setup()
       const onImageRemove = vi.fn()
-      render(
-        <PromptArea {...defaultProps} images={sampleImages} onImageRemove={onImageRemove} />,
-      )
+      render(<PromptArea {...defaultProps} images={sampleImages} onImageRemove={onImageRemove} />)
       const removeButtons = screen.getAllByRole('button', { name: /remove/i })
       await user.click(removeButtons[0])
       expect(onImageRemove).toHaveBeenCalledWith(sampleImages[0])
