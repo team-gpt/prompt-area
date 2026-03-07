@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
-import { Github } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Github, PlusCircle, AtSign, SquareSlash, Hash, Mic, ArrowUp, Code, Type, Upload, Image as ImageIcon } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
+import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
+import { segmentsToPlainText } from '@/registry/new-york/blocks/prompt-area/prompt-area-engine'
 import type {
   Segment,
   TriggerConfig,
@@ -35,6 +37,53 @@ const TAGS = [
   { value: 'docs', label: 'docs' },
   { value: 'urgent', label: 'urgent' },
   { value: 'question', label: 'question' },
+]
+
+// ---------------------------------------------------------------------------
+// Shared helpers & style constants
+// ---------------------------------------------------------------------------
+
+function isSegmentsEmpty(segments: Segment[]): boolean {
+  return (
+    segments.length === 0 ||
+    (segments.length === 1 && segments[0].type === 'text' && segments[0].text === '')
+  )
+}
+
+const ICON_BUTTON_CLASS =
+  'rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground'
+
+const SEND_BUTTON_CLASS =
+  'rounded-lg bg-primary p-1.5 text-primary-foreground hover:bg-primary/90 disabled:opacity-50'
+
+const MENU_ITEM_CLASS =
+  'flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent'
+
+// ActionBar trigger configs (no component-scoped deps, safe to hoist)
+const ACTION_BAR_TRIGGERS: TriggerConfig[] = [
+  {
+    char: '@',
+    position: 'any',
+    mode: 'dropdown',
+    chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
+  },
+  {
+    char: '/',
+    position: 'start',
+    mode: 'dropdown',
+    chipStyle: 'inline',
+    chipClassName: 'text-violet-700 dark:text-violet-400',
+    onSearch: (q) => COMMANDS.filter((c) => c.label.toLowerCase().includes(q.toLowerCase())),
+  },
+  {
+    char: '#',
+    position: 'any',
+    mode: 'dropdown',
+    resolveOnSpace: true,
+    chipClassName: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    onSearch: (q) => TAGS.filter((t) => t.label.toLowerCase().includes(q.toLowerCase())),
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -689,6 +738,257 @@ function AllOptionsExample() {
 }
 
 // ---------------------------------------------------------------------------
+// ActionBar examples
+// ---------------------------------------------------------------------------
+
+function ActionBarFullExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  const [markdownEnabled, setMarkdownEnabled] = useState(false)
+  const [submitted, setSubmitted] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const promptRef = useRef<PromptAreaHandle>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isEmpty = isSegmentsEmpty(segments)
+
+  // Close menu on click outside
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  const handleSubmit = useCallback(() => {
+    if (isSegmentsEmpty(segments)) return
+    setSubmitted(segmentsToPlainText(segments))
+    promptRef.current?.clear()
+    setSegments([])
+  }, [segments])
+
+  const insertTrigger = useCallback(
+    (char: string) => {
+      promptRef.current?.focus()
+      // Uses deprecated execCommand as PromptAreaHandle does not yet expose insertText
+      requestAnimationFrame(() => {
+        document.execCommand('insertText', false, char)
+      })
+    },
+    [],
+  )
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="rounded-lg border p-4">
+        <PromptArea
+          ref={promptRef}
+          value={segments}
+          onChange={setSegments}
+          triggers={ACTION_BAR_TRIGGERS}
+          placeholder="Type a message..."
+          onSubmit={handleSubmit}
+          markdown={markdownEnabled}
+          autoGrow
+          minHeight={48}
+          maxHeight={320}
+        />
+        <ActionBar
+          left={
+            <>
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  className={ICON_BUTTON_CLASS}
+                  aria-label="Attach"
+                  onClick={() => setMenuOpen((v) => !v)}
+                >
+                  <PlusCircle className="size-4" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute left-0 top-full z-10 mt-1 flex w-max flex-col rounded-md border bg-popover p-1 shadow-md">
+                    <button
+                      type="button"
+                      className={MENU_ITEM_CLASS}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Upload className="size-4" />
+                      Upload file
+                    </button>
+                    <button
+                      type="button"
+                      className={MENU_ITEM_CLASS}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <ImageIcon className="size-4" />
+                      Upload image
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className={ICON_BUTTON_CLASS}
+                aria-label="Mention"
+                onClick={() => insertTrigger('@')}
+              >
+                <AtSign className="size-4" />
+              </button>
+              <button
+                type="button"
+                className={ICON_BUTTON_CLASS}
+                aria-label="Commands"
+                onClick={() => {
+                  promptRef.current?.focus()
+                  requestAnimationFrame(() => {
+                    const sel = window.getSelection()
+                    const el = document.activeElement
+                    if (sel && el) {
+                      sel.collapse(el, 0)
+                    }
+                    document.execCommand('insertText', false, '/')
+                  })
+                }}
+              >
+                <SquareSlash className="size-4" />
+              </button>
+              <button
+                type="button"
+                className={ICON_BUTTON_CLASS}
+                aria-label="Tags"
+                onClick={() => insertTrigger('#')}
+              >
+                <Hash className="size-4" />
+              </button>
+            </>
+          }
+          right={
+            <>
+              <button
+                type="button"
+                className={`rounded-md p-1.5 ${
+                  markdownEnabled
+                    ? 'bg-accent text-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+                aria-label="Toggle markdown"
+                onClick={() => setMarkdownEnabled((v) => !v)}
+              >
+                {markdownEnabled ? <Code className="size-4" /> : <Type className="size-4" />}
+              </button>
+              <button
+                type="button"
+                className={ICON_BUTTON_CLASS}
+                aria-label="Voice input"
+              >
+                <Mic className="size-4" />
+              </button>
+              <button
+                type="button"
+                className={SEND_BUTTON_CLASS}
+                aria-label="Send message"
+                disabled={isEmpty}
+                onClick={handleSubmit}
+              >
+                <ArrowUp className="size-4" />
+              </button>
+            </>
+          }
+        />
+      </div>
+      {submitted && (
+        <div className="rounded-lg border bg-muted/50 p-3">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Submitted:</div>
+          <div className="text-sm">{submitted}</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ActionBarMinimalExample() {
+  const [segments, setSegments] = useState<Segment[]>([])
+  const promptRef = useRef<PromptAreaHandle>(null)
+
+  const isEmpty = isSegmentsEmpty(segments)
+
+  const handleSubmit = useCallback(() => {
+    if (isSegmentsEmpty(segments)) return
+    promptRef.current?.clear()
+    setSegments([])
+  }, [segments])
+
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        ref={promptRef}
+        value={segments}
+        onChange={setSegments}
+        placeholder="Type a message..."
+        onSubmit={handleSubmit}
+        minHeight={48}
+      />
+      <ActionBar
+        right={
+          <button
+            type="button"
+            className={SEND_BUTTON_CLASS}
+            aria-label="Send message"
+            disabled={isEmpty}
+            onClick={handleSubmit}
+          >
+            <ArrowUp className="size-4" />
+          </button>
+        }
+      />
+    </div>
+  )
+}
+
+function ActionBarDisabledExample() {
+  const [segments] = useState<Segment[]>([
+    { type: 'text', text: 'This input is disabled...' },
+  ])
+
+  return (
+    <div className="rounded-lg border p-4">
+      <PromptArea
+        value={segments}
+        onChange={() => {}}
+        placeholder="Disabled..."
+        disabled
+        minHeight={48}
+      />
+      <ActionBar
+        disabled
+        left={
+          <>
+            <button type="button" className="rounded-md p-1.5 text-muted-foreground">
+              <PlusCircle className="size-4" />
+            </button>
+            <button type="button" className="rounded-md p-1.5 text-muted-foreground">
+              <AtSign className="size-4" />
+            </button>
+          </>
+        }
+        right={
+          <button
+            type="button"
+            className="rounded-lg bg-primary p-1.5 text-primary-foreground"
+            disabled
+          >
+            <ArrowUp className="size-4" />
+          </button>
+        }
+      />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -821,6 +1121,46 @@ export default function Home() {
             plain text like <code>@alice #bug</code> from outside auto-resolves matching triggers.
           </p>
           <CopyPasteExample />
+        </div>
+      </div>
+
+      {/* ActionBar */}
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <h2 className="text-xl font-semibold">Action Bar</h2>
+          <p className="text-muted-foreground">
+            A horizontal toolbar with left and right slots. Pairs with PromptArea for a complete
+            chat input experience. Independently installable.
+          </p>
+          <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm">
+            npx shadcn@latest add https://prompt-area.vercel.app/r/action-bar.json
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Full-Featured</h3>
+          <p className="text-xs text-muted-foreground">
+            Left slot with attach menu (<code>+</code>), <code>@</code> mention, <code>/</code>{' '}
+            command, and <code>#</code> tag buttons. Right slot with markdown toggle, microphone,
+            and send button. The send button submits the message just like pressing Enter.
+          </p>
+          <ActionBarFullExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Minimal</h3>
+          <p className="text-xs text-muted-foreground">
+            Just a send button on the right. The simplest composition.
+          </p>
+          <ActionBarMinimalExample />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-medium">Disabled</h3>
+          <p className="text-xs text-muted-foreground">
+            Both PromptArea and ActionBar in disabled state.
+          </p>
+          <ActionBarDisabledExample />
         </div>
       </div>
     </div>
