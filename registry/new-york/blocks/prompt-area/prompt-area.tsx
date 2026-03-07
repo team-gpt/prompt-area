@@ -64,6 +64,7 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
       activeTrigger,
       suggestions,
       suggestionsLoading,
+      suggestionsError,
       selectedSuggestionIndex,
       handleInput,
       handleKeyDown,
@@ -219,6 +220,8 @@ export const PromptArea = forwardRef<PromptAreaHandle, PromptAreaProps>(
           <TriggerPopover
             suggestions={suggestions}
             loading={suggestionsLoading}
+            error={suggestionsError}
+            emptyMessage={activeTrigger.config.emptyMessage}
             selectedIndex={selectedSuggestionIndex}
             onSelect={selectSuggestion}
             onDismiss={dismissTrigger}
