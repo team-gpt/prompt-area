@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     'react textarea tags',
     'prompt area',
   ],
-  authors: [{ name: 'Team GPT', url: 'https://github.com/team-gpt' }],
-  creator: 'Team GPT',
+  authors: [{ name: 'Juma.ai', url: 'https://github.com/team-gpt' }],
+  creator: 'Juma.ai',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -110,7 +110,7 @@ export default function RootLayout({
               runtimePlatform: 'Next.js',
               author: {
                 '@type': 'Organization',
-                name: 'Team GPT',
+                name: 'Juma.ai',
                 url: 'https://github.com/team-gpt',
               },
               offers: {
