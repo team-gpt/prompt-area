@@ -158,7 +158,7 @@ function NavItemButton({ item, isActive, index, indent, onClick }: NavItemButton
       onClick={() => onClick(item.id)}
       className={cn(
         'relative w-full rounded-md py-1.5 text-left text-sm transition-all duration-150',
-        indent ? 'pl-7 pr-3' : 'px-3',
+        indent ? 'pr-3 pl-7' : 'px-3',
         'hover:text-foreground hover:translate-x-0.5',
         isActive ? 'text-foreground font-medium' : 'text-muted-foreground',
       )}
@@ -185,7 +185,13 @@ interface CollapsibleNavItemProps {
   itemRefs: React.RefObject<Map<string, HTMLElement>>
 }
 
-function CollapsibleNavItem({ item, activeId, index, onNavigate, itemRefs }: CollapsibleNavItemProps) {
+function CollapsibleNavItem({
+  item,
+  activeId,
+  index,
+  onNavigate,
+  itemRefs,
+}: CollapsibleNavItemProps) {
   const visible = useSidebarVisible()
   const childIds = useMemo(() => item.children?.map((c) => c.id) ?? [], [item.children])
   const hasActiveChild = activeId !== null && childIds.includes(activeId)
@@ -207,7 +213,9 @@ function CollapsibleNavItem({ item, activeId, index, onNavigate, itemRefs }: Col
         className={cn(
           'relative flex w-full items-center gap-1 rounded-md px-3 py-1.5 text-left text-sm transition-all duration-150',
           'hover:text-foreground',
-          isParentActive || hasActiveChild ? 'text-foreground font-medium' : 'text-muted-foreground',
+          isParentActive || hasActiveChild
+            ? 'text-foreground font-medium'
+            : 'text-muted-foreground',
         )}
         style={{
           opacity: visible ? 1 : 0,
@@ -371,7 +379,6 @@ function NavSidebar() {
           ),
         )}
       </nav>
-
     </aside>
   )
 }
