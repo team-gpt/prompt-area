@@ -53,6 +53,7 @@ describe('FileStrip', () => {
 
   it('does not render remove buttons when onRemove is not provided', () => {
     render(<FileStrip files={sampleFiles} />)
+    // sampleFiles has 2 items (<=3), so no expand button either
     expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
@@ -85,15 +86,41 @@ describe('FileStrip', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
   })
 
-  it('uses compact mode with more than 3 files', () => {
+  it('collapses to first 3 files with "+N more" when more than 3 files', () => {
     render(<FileStrip files={manyFiles} />)
+    // Only first 3 visible initially
     const items = screen.getAllByRole('listitem')
+    expect(items).toHaveLength(3)
     // Compact cards should have w-36 class
     for (const item of items) {
       expect(item.className).toContain('w-36')
     }
+    // "+1 more" button visible
+    expect(screen.getByText('+1 more')).toBeInTheDocument()
     // Compact mode hides metadata secondary line
     expect(screen.queryByText(/KB/)).not.toBeInTheDocument()
+  })
+
+  it('expands to show all files when "+N more" is clicked', async () => {
+    const user = userEvent.setup()
+    render(<FileStrip files={manyFiles} />)
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+
+    await user.click(screen.getByText('+1 more'))
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.getByText('Show less')).toBeInTheDocument()
+  })
+
+  it('collapses back when "Show less" is clicked', async () => {
+    const user = userEvent.setup()
+    render(<FileStrip files={manyFiles} />)
+
+    await user.click(screen.getByText('+1 more'))
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
+
+    await user.click(screen.getByText('Show less'))
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.getByText('+1 more')).toBeInTheDocument()
   })
 
   it('uses normal mode with 3 or fewer files', () => {

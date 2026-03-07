@@ -1012,7 +1012,7 @@ function FileAttachmentsExample() {
       </div>
       <div className="flex flex-col gap-1">
         <div className="text-muted-foreground text-xs">
-          Compact mode (4+ files, horizontal scroll)
+          Many files (4+ files, collapsible with expand)
         </div>
         <div className="rounded-lg border p-4">
           <PromptArea
@@ -1023,7 +1023,7 @@ function FileAttachmentsExample() {
             onFileRemove={(f) => setCompactFiles((prev) => prev.filter((x) => x.id !== f.id))}
             onFileClick={handleFileClick}
             onSubmit={() => setCompactSegments([])}
-            placeholder="Scroll horizontally to see all files..."
+            placeholder="Click +N more to expand all files..."
             minHeight={48}
             maxHeight={200}
           />
@@ -1474,8 +1474,8 @@ export default function Home() {
           <h3 className="text-sm font-medium">File Attachments</h3>
           <p className="text-muted-foreground text-xs">
             Attach files with icon, name, and metadata. Cards show a file-type icon, truncated
-            filename, and extension/size. Compact mode activates automatically with 4+ files. Click
-            &times; to remove.
+            filename, and extension/size. With 4+ files, only the first 3 are shown with a &ldquo;+N
+            more&rdquo; button to expand. Click &times; to remove.
           </p>
           <FileAttachmentsExample />
         </div>
