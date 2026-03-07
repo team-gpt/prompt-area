@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "lefthook install",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

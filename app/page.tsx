@@ -36,9 +36,21 @@ const USERS = [
 ]
 
 const COMMANDS = [
-  { value: 'summarize', label: 'summarize', description: 'Summarize the conversation' },
-  { value: 'translate', label: 'translate', description: 'Translate to another language' },
-  { value: 'improve', label: 'improve', description: 'Improve writing quality' },
+  {
+    value: 'summarize',
+    label: 'summarize',
+    description: 'Summarize the conversation',
+  },
+  {
+    value: 'translate',
+    label: 'translate',
+    description: 'Translate to another language',
+  },
+  {
+    value: 'improve',
+    label: 'improve',
+    description: 'Improve writing quality',
+  },
   { value: 'explain', label: 'explain', description: 'Explain a concept' },
   { value: 'code', label: 'code', description: 'Generate code snippet' },
 ]
@@ -514,7 +526,10 @@ function AllOptionsExample() {
   const [segments, setSegments] = useState<Segment[]>([
     { type: 'text', text: 'Hello ' },
     { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
-    { type: 'text', text: ' — click a chip, paste text, or try every feature!' },
+    {
+      type: 'text',
+      text: ' — click a chip, paste text, or try every feature!',
+    },
   ])
   const [eventLog, setEventLog] = useState<string[]>([])
   const promptRef = useRef<PromptAreaHandle>(null)
@@ -984,7 +999,7 @@ export default function Home() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-16">
       {/* Hero */}
-      <div className="flex flex-col gap-3">
+      <div id="hero" className="flex scroll-mt-16 flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Prompt Area</h1>
           <a
@@ -1013,7 +1028,7 @@ export default function Home() {
       </div>
 
       {/* Comprehensive example – all capabilities */}
-      <div className="flex flex-col gap-3">
+      <div id="try-it" className="flex scroll-mt-16 flex-col gap-3">
         <h2 className="text-xl font-semibold">Try It</h2>
         <p className="text-muted-foreground text-sm">
           All capabilities in one editor. <code>/</code> commands (start of line, inline style),{' '}
@@ -1027,7 +1042,7 @@ export default function Home() {
       </div>
 
       {/* All Options */}
-      <div className="flex flex-col gap-3">
+      <div id="all-options" className="flex scroll-mt-16 flex-col gap-3">
         <h2 className="text-xl font-semibold">All Options</h2>
         <p className="text-muted-foreground text-sm">
           Every prop and option in a single example. Toggles for <code>disabled</code>,{' '}
@@ -1046,16 +1061,16 @@ export default function Home() {
       </div>
 
       {/* Examples */}
-      <div className="flex flex-col gap-6">
+      <div id="examples" className="flex scroll-mt-16 flex-col gap-6">
         <h2 className="text-xl font-semibold">Examples</h2>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-basic" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Basic (no triggers)</h3>
           <p className="text-muted-foreground text-xs">Simple text input with Enter to submit.</p>
           <BasicExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-mentions" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">@Mentions</h3>
           <p className="text-muted-foreground text-xs">
             Type <code>@</code> followed by a name to search users.
@@ -1063,7 +1078,7 @@ export default function Home() {
           <MentionsExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-commands" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">/Commands (start of line)</h3>
           <p className="text-muted-foreground text-xs">
             Type <code>/</code> at the beginning of a line for commands.
@@ -1071,7 +1086,7 @@ export default function Home() {
           <CommandsExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-tags" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">#Tags (auto-resolve on space)</h3>
           <p className="text-muted-foreground text-xs">
             Type <code>#tag</code> and press space to auto-create a chip. Backspace reverts it.
@@ -1079,7 +1094,7 @@ export default function Home() {
           <TagsExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-callback" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Callback mode (!)</h3>
           <p className="text-muted-foreground text-xs">
             Type <code>!</code> to fire a callback that programmatically inserts a chip.
@@ -1087,7 +1102,7 @@ export default function Home() {
           <CallbackExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-markdown" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Markdown Formatting</h3>
           <p className="text-muted-foreground text-xs">
             Wrap text in <code>**bold**</code>, <code>*italic*</code>, or <code>***both***</code> to
@@ -1097,7 +1112,7 @@ export default function Home() {
           <MarkdownExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="example-copy-paste" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Copy & Paste</h3>
           <p className="text-muted-foreground text-xs">
             Select content with chips in the source editor and <strong>Cmd+C</strong> to copy, then{' '}
@@ -1110,7 +1125,7 @@ export default function Home() {
 
       {/* ActionBar */}
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-3">
+        <div id="action-bar" className="flex scroll-mt-16 flex-col gap-3">
           <h2 className="text-xl font-semibold">Action Bar</h2>
           <p className="text-muted-foreground">
             A horizontal toolbar with left and right slots. Pairs with PromptArea for a complete
@@ -1121,7 +1136,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="action-bar-full" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Full-Featured</h3>
           <p className="text-muted-foreground text-xs">
             Left slot with attach menu (<code>+</code>), <code>@</code> mention, <code>/</code>{' '}
@@ -1131,7 +1146,7 @@ export default function Home() {
           <ActionBarFullExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="action-bar-minimal" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Minimal</h3>
           <p className="text-muted-foreground text-xs">
             Just a send button on the right. The simplest composition.
@@ -1139,7 +1154,7 @@ export default function Home() {
           <ActionBarMinimalExample />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div id="action-bar-disabled" className="flex scroll-mt-16 flex-col gap-2">
           <h3 className="text-sm font-medium">Disabled</h3>
           <p className="text-muted-foreground text-xs">
             Both PromptArea and ActionBar in disabled state.
