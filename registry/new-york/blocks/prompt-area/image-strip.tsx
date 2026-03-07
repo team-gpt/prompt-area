@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { RemoveButton } from './remove-button'
 import type { PromptAreaImage } from './types'
 
 type ImageStripProps = {
@@ -35,17 +36,7 @@ export function ImageStrip({ images, onRemove, onClick, className }: ImageStripP
             </div>
           )}
           {onRemove && (
-            <button
-              type="button"
-              onClick={() => onRemove(image)}
-              className={cn(
-                'absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center',
-                'rounded-full bg-black/60 text-white hover:bg-black/80',
-                'text-xs leading-none transition-colors',
-              )}
-              aria-label={`Remove ${image.alt ?? 'image'}`}>
-              ×
-            </button>
+            <RemoveButton onClick={() => onRemove(image)} label={`Remove ${image.alt ?? 'image'}`} />
           )}
         </div>
       ))}
