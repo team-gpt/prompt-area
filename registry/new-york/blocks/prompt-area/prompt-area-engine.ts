@@ -201,29 +201,25 @@ export function resolveChip(
   const merged = mergeAdjacentTextSegments(newSegments)
 
   // Cursor should be placed after the chip + trailing space.
-  // Calculate deterministically by summing lengths up to (and including) the
-  // chip, avoiding indexOf which breaks on duplicate display text.
-  let cursorOffset = 0
-  let foundChip = false
+  // Find the *last* matching chip so duplicates resolve correctly.
+  let lastChipEndOffset = -1
+  let runningOffset = 0
   for (const seg of merged) {
     if (seg.type === 'text') {
-      if (foundChip) {
-        // Include the leading space of the text segment after the chip
-        cursorOffset += 1
-        break
-      }
-      cursorOffset += seg.text.length
+      runningOffset += seg.text.length
     } else {
-      cursorOffset += seg.trigger.length + seg.displayText.length
+      runningOffset += seg.trigger.length + seg.displayText.length
       if (
         seg.value === chip.value &&
         seg.displayText === chip.displayText &&
         seg.trigger === activeTrigger.config.char
       ) {
-        foundChip = true
+        lastChipEndOffset = runningOffset
       }
     }
   }
+  // +1 accounts for the trailing space after the chip
+  const cursorOffset = lastChipEndOffset === -1 ? runningOffset : lastChipEndOffset + 1
 
   return { segments: merged, cursorOffset }
 }

@@ -1348,6 +1348,28 @@ describe('resolveChip cursor offset', () => {
     expect(result.cursorOffset).toBe(21)
   })
 
+  it('places cursor after the second identical chip (not the first)', () => {
+    // First "@Alice" chip already exists, now resolving a second identical one
+    const segments: Segment[] = [
+      { type: 'chip', trigger: '@', value: 'user-1', displayText: 'Alice' },
+      { type: 'text', text: ' @alice' },
+    ]
+    // Plain text: "@Alice @alice" (13 chars)
+    const trigger: ActiveTrigger = {
+      config: mentionTrigger,
+      startOffset: 7,
+      query: 'alice',
+    }
+    const result = resolveChip(segments, trigger, {
+      value: 'user-1',
+      displayText: 'Alice',
+    })
+
+    // "@Alice" (6) + " " (1) + "@Alice" (6) + " " (1) = 14
+    // Cursor must be after the SECOND (newly inserted) chip, not the first
+    expect(result.cursorOffset).toBe(14)
+  })
+
   it('calculates correct cursor when resolving after text and chips', () => {
     const segments: Segment[] = [
       { type: 'text', text: 'hey ' },
