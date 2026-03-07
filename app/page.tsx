@@ -987,15 +987,13 @@ export default function Home() {
       {/* Comprehensive example – all capabilities */}
       <div id="try-it" className="flex scroll-mt-16 flex-col gap-3">
         <SectionHeading id="try-it" as="h2">
-          Try It
+          Inspector
         </SectionHeading>
         <p className="text-muted-foreground text-sm">
-          All capabilities in one editor. <code>/</code> commands (start of line, inline style),{' '}
-          <code>@</code> mentions (pill style), <code>#</code> tags (auto-resolve on space),{' '}
-          <code>!</code> callback mode. <strong>Cmd+B</strong> bold, <strong>Cmd+I</strong> italic,{' '}
-          <strong>Ctrl+Z</strong>/<strong>Ctrl+Shift+Z</strong> undo/redo. Type <code>- </code> for
-          lists, paste a URL for auto-linking, or use the buttons below to call the imperative API.{' '}
-          <strong>Enter</strong> to submit, <strong>Escape</strong> to dismiss.
+          Inspect every event, segment, and API method in real time. <code>/</code> commands (start
+          of line, inline style), <code>@</code> mentions (pill style), <code>#</code> tags
+          (auto-resolve on space), <code>!</code> callback mode. Use the buttons below to call the
+          imperative API. All interactions are logged to the event panel.
         </p>
         <ComprehensiveExample />
       </div>
