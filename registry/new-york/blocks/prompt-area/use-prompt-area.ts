@@ -134,7 +134,6 @@ export function usePromptArea({
   const isSyncing = useRef(false)
   const lastRenderedValue = useRef<Segment[]>([])
 
-
   // Debounced undo: groups consecutive keystrokes into a single undo snapshot
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const undoBaseState = useRef<Segment[] | null>(null)
@@ -521,6 +520,19 @@ export function usePromptArea({
         }
 
         if (isChipElement(node)) {
+          // Spawn ripple effect
+          const chipEl = node as HTMLElement
+          const rect = chipEl.getBoundingClientRect()
+          const ripple = document.createElement('span')
+          ripple.className = 'prompt-area-chip-ripple'
+          const size = Math.max(rect.width, rect.height)
+          ripple.style.width = `${size}px`
+          ripple.style.height = `${size}px`
+          ripple.style.left = `${e.clientX - rect.left - size / 2}px`
+          ripple.style.top = `${e.clientY - rect.top - size / 2}px`
+          chipEl.appendChild(ripple)
+          ripple.addEventListener('animationend', () => ripple.remove())
+
           if (!onChipClick) return
           const trigger = getChipTrigger(node)
           const chipValue = getChipValue(node)
