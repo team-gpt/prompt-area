@@ -171,7 +171,7 @@ const DEMO_INITIAL_SEGMENTS: Segment[] = [
   { type: 'chip', trigger: '#', value: 'urgent', displayText: 'urgent' },
   {
     type: 'text',
-    text: ' and highlight the **key decisions** with *action items* for each team member',
+    text: ' and format the output as:\n- **Key decisions** made during the meeting\n- *Action items* assigned to each team member\n- Open questions for follow-up',
   },
 ]
 
@@ -255,7 +255,7 @@ function DemoSection() {
           markdown={markdownEnabled}
           autoGrow
           minHeight={72}
-          maxHeight={200}
+          maxHeight={280}
         />
         <ActionBar
           left={
