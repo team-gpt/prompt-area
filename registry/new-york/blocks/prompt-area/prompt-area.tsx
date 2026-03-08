@@ -167,7 +167,7 @@ export function PromptArea({
   // -----------------------------------------------------------------------
 
   const [hasOverflow, setHasOverflow] = useState(false)
-  const overflowCheckRef = useRef<number | null>(null)
+  const overflowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!autoGrow) return
@@ -182,11 +182,13 @@ export function PromptArea({
       setHasOverflow(el.scrollHeight > el.clientHeight)
     }
 
-    // Check after render settles
-    overflowCheckRef.current = requestAnimationFrame(checkOverflow)
+    // Delay the check so the CSS height transition (150ms) finishes first;
+    // on initial mount there is no transition so the check still runs quickly.
+    const delay = isFocused ? 0 : 160
+    overflowTimerRef.current = setTimeout(checkOverflow, delay)
     return () => {
-      if (overflowCheckRef.current !== null) {
-        cancelAnimationFrame(overflowCheckRef.current)
+      if (overflowTimerRef.current !== null) {
+        clearTimeout(overflowTimerRef.current)
       }
     }
   }, [autoGrow, isFocused, value, editorRef])

@@ -296,10 +296,9 @@ describe('PromptArea', () => {
       Object.defineProperty(editor, 'scrollHeight', { value: 200, configurable: true })
       Object.defineProperty(editor, 'clientHeight', { value: 80, configurable: true })
 
-      // Trigger the rAF-based overflow check
+      // Advance past the 160ms overflow check delay
       await act(async () => {
-        vi.advanceTimersByTime(0)
-        await vi.runAllTimersAsync()
+        vi.advanceTimersByTime(200)
       })
 
       const gradient = container.querySelector('[aria-hidden="true"].pointer-events-auto')
@@ -322,8 +321,7 @@ describe('PromptArea', () => {
       Object.defineProperty(editor, 'clientHeight', { value: 80, configurable: true })
 
       await act(async () => {
-        vi.advanceTimersByTime(0)
-        await vi.runAllTimersAsync()
+        vi.advanceTimersByTime(200)
       })
 
       const gradient = container.querySelector('[aria-hidden="true"].pointer-events-auto')
@@ -346,8 +344,7 @@ describe('PromptArea', () => {
 
       // Let overflow check run
       await act(async () => {
-        vi.advanceTimersByTime(0)
-        await vi.runAllTimersAsync()
+        vi.advanceTimersByTime(200)
       })
 
       // Focus the editor – should hide gradient
@@ -372,8 +369,7 @@ describe('PromptArea', () => {
       Object.defineProperty(editor, 'clientHeight', { value: 80, configurable: true })
 
       await act(async () => {
-        vi.advanceTimersByTime(0)
-        await vi.runAllTimersAsync()
+        vi.advanceTimersByTime(200)
       })
 
       const gradient = container.querySelector('[aria-hidden="true"].pointer-events-auto')
@@ -381,6 +377,50 @@ describe('PromptArea', () => {
 
       fireEvent.click(gradient!)
       expect(document.activeElement).toBe(editor)
+    })
+
+    it('re-shows overflow gradient after focus then blur', async () => {
+      const { container } = render(
+        <PromptArea
+          {...defaultProps}
+          autoGrow
+          minHeight={80}
+          value={[{ type: 'text', text: 'Line1\nLine2\nLine3\nLine4\nLine5\nLine6\nLine7\nLine8' }]}
+        />,
+      )
+      const editor = screen.getByRole('textbox')
+
+      Object.defineProperty(editor, 'scrollHeight', { value: 200, configurable: true })
+      Object.defineProperty(editor, 'clientHeight', { value: 80, configurable: true })
+
+      // Initial overflow check
+      await act(async () => {
+        vi.advanceTimersByTime(200)
+      })
+      expect(
+        container.querySelector('[aria-hidden="true"].pointer-events-auto'),
+      ).toBeInTheDocument()
+
+      // Focus – gradient should disappear
+      fireEvent.focus(editor)
+      expect(
+        container.querySelector('[aria-hidden="true"].pointer-events-auto'),
+      ).not.toBeInTheDocument()
+
+      // Blur – after delays, gradient should reappear
+      fireEvent.blur(editor)
+      // First: blur delay (150ms) fires setIsFocused(false)
+      await act(async () => {
+        vi.advanceTimersByTime(200)
+      })
+      // Then: overflow check delay (160ms) fires checkOverflow
+      await act(async () => {
+        vi.advanceTimersByTime(200)
+      })
+
+      expect(
+        container.querySelector('[aria-hidden="true"].pointer-events-auto'),
+      ).toBeInTheDocument()
     })
 
     it('uses overflow-hidden when collapsed, auto when focused', () => {
