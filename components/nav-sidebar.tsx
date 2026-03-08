@@ -53,6 +53,11 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    id: 'compact-prompt-area',
+    label: 'Compact Prompt Area',
+    children: [{ id: 'compact-prompt-area-demo', label: 'Demo' }],
+  },
+  {
     id: 'dark-theme',
     label: 'Dark Theme',
     children: [{ id: 'dark-theme-preview', label: 'Preview' }],

@@ -35,6 +35,8 @@ import {
   statusBarBelowCode,
   StatusBarBothExample,
   statusBarBothCode,
+  CompactPromptAreaExample,
+  compactPromptAreaCode,
 } from './examples'
 import { SectionHeading } from './sections/section-heading'
 import { DemoSection } from './sections/demo-section'
@@ -274,8 +276,8 @@ export default function HomeContent() {
           </SectionHeading>
           <p className="text-muted-foreground">
             A horizontal bar with left and right slots for displaying contextual information. Sits
-            above or below the PromptArea to show things like branch name, model selector, or project
-            context. Independently installable.
+            above or below the PromptArea to show things like branch name, model selector, or
+            project context. Independently installable.
           </p>
           <div className="bg-muted rounded-md px-3 py-2 font-mono text-sm">
             npx shadcn@latest add https://prompt-area.com/r/status-bar.json
@@ -309,6 +311,34 @@ export default function HomeContent() {
           </p>
           <ExampleShowcase code={statusBarBothCode}>
             <StatusBarBothExample />
+          </ExampleShowcase>
+        </div>
+      </div>
+
+      {/* Compact Prompt Area */}
+      <div className="flex flex-col gap-6">
+        <div id="compact-prompt-area" className="flex scroll-mt-16 flex-col gap-3">
+          <SectionHeading id="compact-prompt-area" as="h2">
+            Compact Prompt Area
+          </SectionHeading>
+          <p className="text-muted-foreground">
+            A pill-shaped prompt input that expands downward on focus. Circular plus and submit
+            buttons with a customizable slot for extras like a microphone. Independently
+            installable.
+          </p>
+          <div className="bg-muted rounded-md px-3 py-2 font-mono text-sm">
+            npx shadcn@latest add https://prompt-area.com/r/compact-prompt-area.json
+          </div>
+        </div>
+
+        <div id="compact-prompt-area-demo" className="flex scroll-mt-16 flex-col gap-2">
+          <SectionHeading id="compact-prompt-area-demo">Demo</SectionHeading>
+          <p className="text-muted-foreground text-xs">
+            Compact single-row input with circular plus and submit buttons. Expands downward on
+            focus with a microphone slot before the submit button.
+          </p>
+          <ExampleShowcase code={compactPromptAreaCode}>
+            <CompactPromptAreaExample />
           </ExampleShowcase>
         </div>
       </div>
