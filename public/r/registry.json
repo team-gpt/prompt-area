@@ -60,6 +60,23 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "status-bar",
+      "type": "registry:component",
+      "title": "Status Bar",
+      "description": "A horizontal bar with left and right slots for displaying contextual information above or below a text input. Pairs with PromptArea and ActionBar.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york/blocks/status-bar/status-bar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/new-york/blocks/status-bar/types.ts",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

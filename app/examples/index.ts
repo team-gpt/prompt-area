@@ -11,3 +11,11 @@ export { FileAttachmentsExample, fileAttachmentsCode } from './file-attachments'
 export { ActionBarFullExample, actionBarFullCode } from './action-bar-full'
 export { ActionBarMinimalExample, actionBarMinimalCode } from './action-bar-minimal'
 export { ActionBarDisabledExample, actionBarDisabledCode } from './action-bar-disabled'
+export {
+  StatusBarAboveExample,
+  statusBarAboveCode,
+  StatusBarBelowExample,
+  statusBarBelowCode,
+  StatusBarBothExample,
+  statusBarBothCode,
+} from './status-bar'
