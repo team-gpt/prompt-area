@@ -196,4 +196,8 @@
     /* Base styles for action-bar; Tailwind utilities handle the layout.
        This class exists as a stable selector for consumer overrides. */
   }
+  .status-bar {
+    /* Base styles for status-bar; Tailwind utilities handle the layout.
+       This class exists as a stable selector for consumer overrides. */
+  }
 }
