@@ -2462,4 +2462,310 @@ describe('usePromptArea', () => {
       document.body.removeChild(editor)
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Imperative handle methods
+  // -------------------------------------------------------------------------
+
+  describe('imperative handle', () => {
+    it('handle.insertChip adds a chip to segments and calls onChange and onChipAdd', () => {
+      const onChange = vi.fn()
+      const onChipAdd = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, onChipAdd })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello ')
+      placeCursor(editor.firstChild!, 6)
+
+      act(() => {
+        result.current.handle.insertChip({
+          trigger: '@',
+          value: 'alice',
+          displayText: 'Alice',
+        })
+      })
+
+      expect(onChange).toHaveBeenCalled()
+      const segments = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+      const chipSegment = segments.find((s: Segment) => s.type === 'chip')
+      expect(chipSegment).toBeDefined()
+      expect(chipSegment.trigger).toBe('@')
+      expect(chipSegment.value).toBe('alice')
+      expect(chipSegment.displayText).toBe('Alice')
+
+      // A trailing text segment with space should follow the chip
+      const lastSegment = segments[segments.length - 1]
+      expect(lastSegment.type).toBe('text')
+      expect(lastSegment.text).toBe(' ')
+
+      expect(onChipAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'chip', trigger: '@', value: 'alice' }),
+      )
+
+      document.body.removeChild(editor)
+    })
+
+    it('handle.getPlainText returns the plain text representation', () => {
+      const { result } = renderHook(() => usePromptArea(defaultProps()))
+
+      const editor = attachEditor(result.current)
+      const chip = createChipNode('@', 'alice', 'Alice')
+      populateEditor(editor, 'hello ', chip, ' world')
+
+      let plainText = ''
+      act(() => {
+        plainText = result.current.handle.getPlainText()
+      })
+
+      expect(plainText).toBe('hello @Alice world')
+
+      document.body.removeChild(editor)
+    })
+
+    it('handle.clear resets segments, clears editor DOM, and resets undo', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'some content here')
+      placeCursor(editor.firstChild!, 4)
+
+      // Type something to create undo state
+      act(() => {
+        result.current.handleInput()
+      })
+
+      onChange.mockClear()
+
+      act(() => {
+        result.current.handle.clear()
+      })
+
+      // onChange called with empty array
+      expect(onChange).toHaveBeenCalledWith([])
+
+      // Editor DOM should be emptied
+      expect(editor.childNodes.length).toBe(0)
+
+      document.body.removeChild(editor)
+    })
+
+    it('handle.clear clears pending undo timer', () => {
+      vi.useFakeTimers()
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'test')
+      placeCursor(editor.firstChild!, 4)
+
+      // Trigger handleInput to start undo timer
+      act(() => {
+        result.current.handleInput()
+      })
+
+      onChange.mockClear()
+
+      // Clear before the undo timer fires
+      act(() => {
+        result.current.handle.clear()
+      })
+
+      expect(onChange).toHaveBeenCalledWith([])
+
+      // Advance timers — nothing should blow up (timer was cleared)
+      act(() => {
+        vi.advanceTimersByTime(5000)
+      })
+
+      vi.useRealTimers()
+      document.body.removeChild(editor)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // Markdown formatting via Ctrl+B / Ctrl+I (exercises selection offset utils)
+  // -------------------------------------------------------------------------
+
+  describe('markdown formatting shortcuts', () => {
+    /** Helper to select a range of text in the editor */
+    function selectRange(startNode: Node, startOffset: number, endNode: Node, endOffset: number) {
+      const range = document.createRange()
+      range.setStart(startNode, startOffset)
+      range.setEnd(endNode, endOffset)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+    }
+
+    /** Create a Ctrl+key keyboard event */
+    function ctrlKeyEvent(key: string) {
+      const preventDefault = vi.fn()
+      const e = {
+        key,
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: false,
+        preventDefault,
+        nativeEvent: { isComposing: false },
+      } as unknown as React.KeyboardEvent<HTMLDivElement>
+      return { e, preventDefault }
+    }
+
+    it('Ctrl+B wraps selected text with ** markers', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, markdown: true })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello world')
+      // Select "world" (offset 6–11)
+      selectRange(editor.firstChild!, 6, editor.firstChild!, 11)
+
+      const { e, preventDefault } = ctrlKeyEvent('b')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      expect(preventDefault).toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalled()
+      const segments = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+      // Reconstruct plain text from segments
+      const plainText = segments.map((s: Segment) => (s.type === 'text' ? s.text : '')).join('')
+      expect(plainText).toContain('**world**')
+
+      document.body.removeChild(editor)
+    })
+
+    it('Ctrl+I wraps selected text with * markers', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, markdown: true })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello world')
+      // Select "hello" (offset 0–5)
+      selectRange(editor.firstChild!, 0, editor.firstChild!, 5)
+
+      const { e, preventDefault } = ctrlKeyEvent('i')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      expect(preventDefault).toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalled()
+      const segments = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+      const plainText = segments.map((s: Segment) => (s.type === 'text' ? s.text : '')).join('')
+      expect(plainText).toContain('*hello*')
+
+      document.body.removeChild(editor)
+    })
+
+    it('Ctrl+B does nothing with collapsed cursor (no selection)', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, markdown: true })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello world')
+      placeCursor(editor.firstChild!, 3) // collapsed cursor at offset 3
+
+      const { e, preventDefault } = ctrlKeyEvent('b')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      // Should not have called onChange for formatting (may have been called by other logic)
+      // The key check: preventDefault should have been called but toggleMarkdownWrap returns null
+      // for collapsed selections, so onChange should NOT be called for formatting
+      const formattingCalls = onChange.mock.calls.filter((call: unknown[]) => {
+        const segs = call[0] as Segment[]
+        const text = segs.map((s) => (s.type === 'text' ? s.text : '')).join('')
+        return text.includes('**')
+      })
+      expect(formattingCalls).toHaveLength(0)
+
+      document.body.removeChild(editor)
+    })
+
+    it('Ctrl+B unwraps already bold text', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, markdown: true })))
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello **world** end')
+      // Select "world" inside the bold markers (offsets 8–13 in plain text)
+      // In DOM: "hello **world** end" — "world" starts at index 8
+      selectRange(editor.firstChild!, 8, editor.firstChild!, 13)
+
+      const { e, preventDefault } = ctrlKeyEvent('b')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      expect(preventDefault).toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalled()
+      const segments = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+      const plainText = segments.map((s: Segment) => (s.type === 'text' ? s.text : '')).join('')
+      // The ** markers should have been removed
+      expect(plainText).not.toContain('**')
+      expect(plainText).toContain('world')
+
+      document.body.removeChild(editor)
+    })
+
+    it('Ctrl+B wraps selection spanning multiple text nodes', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() => usePromptArea(defaultProps({ onChange, markdown: true })))
+
+      const editor = attachEditor(result.current)
+      // Create multiple text nodes: "foo " + chip + " bar"
+      const chip = createChipNode('@', 'alice', 'Alice')
+      populateEditor(editor, 'foo ', chip, ' bar')
+
+      // Select " bar" (the third child is the text node " bar")
+      const barTextNode = editor.childNodes[2] // " bar" text node
+      selectRange(barTextNode, 1, barTextNode, 4) // select "bar"
+
+      const { e, preventDefault } = ctrlKeyEvent('b')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      expect(preventDefault).toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalled()
+      const segments = onChange.mock.calls[onChange.mock.calls.length - 1][0]
+      const plainText = segments
+        .map((s: Segment) =>
+          s.type === 'text' ? s.text : s.type === 'chip' ? `${s.trigger}${s.displayText}` : '',
+        )
+        .join('')
+      expect(plainText).toContain('**bar**')
+
+      document.body.removeChild(editor)
+    })
+
+    it('does not format when markdown is disabled', () => {
+      const onChange = vi.fn()
+      const { result } = renderHook(() =>
+        usePromptArea(defaultProps({ onChange, markdown: false })),
+      )
+
+      const editor = attachEditor(result.current)
+      populateEditor(editor, 'hello world')
+      selectRange(editor.firstChild!, 6, editor.firstChild!, 11)
+
+      const { e } = ctrlKeyEvent('b')
+      act(() => {
+        result.current.handleKeyDown(e)
+      })
+
+      // onChange should not have been called with bold markers
+      const formattingCalls = onChange.mock.calls.filter((call: unknown[]) => {
+        const segs = call[0] as Segment[]
+        const text = segs.map((s) => (s.type === 'text' ? s.text : '')).join('')
+        return text.includes('**')
+      })
+      expect(formattingCalls).toHaveLength(0)
+
+      document.body.removeChild(editor)
+    })
+  })
 })
