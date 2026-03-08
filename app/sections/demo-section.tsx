@@ -12,14 +12,18 @@ import {
   Code,
   Upload,
   Image as ImageIcon,
+  GitBranch,
+  ChevronDown,
 } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
 import type {
   Segment,
   TriggerConfig,
   PromptAreaHandle,
+  PromptAreaFile,
 } from '@/registry/new-york/blocks/prompt-area/types'
 import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
+import { StatusBar } from '@/registry/new-york/blocks/status-bar/status-bar'
 import { USERS, COMMANDS, TAGS } from './mock-data'
 
 const DEMO_INITIAL_SEGMENTS: Segment[] = [
@@ -65,11 +69,21 @@ const DEMO_TRIGGERS: TriggerConfig[] = [
   },
 ]
 
+const DEMO_FILES: PromptAreaFile[] = [
+  {
+    id: 'demo-file-1',
+    name: 'Q4-2025-financial-report.pdf',
+    size: 3_420_000,
+    type: 'application/pdf',
+  },
+]
+
 const ICON_BTN = 'rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground'
 const MENU_ITEM = 'flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent'
 
 export function DemoSection() {
   const [segments, setSegments] = useState<Segment[]>(DEMO_INITIAL_SEGMENTS)
+  const [files, setFiles] = useState<PromptAreaFile[]>(DEMO_FILES)
   const [markdownEnabled, setMarkdownEnabled] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const promptRef = useRef<PromptAreaHandle>(null)
@@ -105,7 +119,26 @@ export function DemoSection() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="rounded-xl border p-4 shadow-sm">
+      <div className="rounded-xl border shadow-sm">
+        <StatusBar
+          className="rounded-t-xl border-b px-4 py-2"
+          left={
+            <div className="flex items-center gap-1.5">
+              <span className="bg-muted rounded px-1.5 py-0.5 font-medium">prompt-area</span>
+              <GitBranch className="text-muted-foreground size-3" />
+              <span className="text-muted-foreground">main</span>
+            </div>
+          }
+          right={
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+              Default
+              <ChevronDown className="size-3" />
+            </button>
+          }
+        />
+        <div className="p-4">
         <PromptArea
           ref={promptRef}
           value={segments}
@@ -117,6 +150,9 @@ export function DemoSection() {
           autoGrow
           minHeight={72}
           maxHeight={280}
+          files={files}
+          filePosition="above"
+          onFileRemove={(f) => setFiles((prev) => prev.filter((x) => x.id !== f.id))}
         />
         <ActionBar
           left={
@@ -202,6 +238,7 @@ export function DemoSection() {
             </>
           }
         />
+        </div>
       </div>
       <p className="text-muted-foreground text-center text-xs">
         Try editing, type <code>@</code> to mention, <code>/</code> for commands, or just hit Enter
