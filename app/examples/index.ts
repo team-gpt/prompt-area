@@ -19,3 +19,4 @@ export {
   StatusBarBothExample,
   statusBarBothCode,
 } from './status-bar'
+export { ChatPromptLayoutExample, chatPromptLayoutCode } from './chat-prompt-layout'
