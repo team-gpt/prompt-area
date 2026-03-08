@@ -61,6 +61,7 @@ export function CompactPromptArea({
   const containerRef = useRef<HTMLDivElement>(null)
   const promptWrapperRef = useRef<HTMLDivElement>(null)
   const [isOverflowing, setIsOverflowing] = useState(false)
+  const isOverflowingRef = useRef(false)
 
   useImperativeHandle(ref, () => promptRef.current!, [])
 
@@ -70,21 +71,45 @@ export function CompactPromptArea({
   const hasAttachments = (images && images.length > 0) || (files && files.length > 0)
   const isExpanded = isOverflowing || hasAttachments
 
-  // Observe the contenteditable height to detect multiline content
+  // Detect multiline content with hysteresis to prevent flickering.
+  // We measure scrollHeight on a hidden clone so layout shifts from
+  // expanding/collapsing don't feed back into the measurement.
   useEffect(() => {
     const wrapper = promptWrapperRef.current
     if (!wrapper) return
-    const SINGLE_LINE_THRESHOLD = 32
+    const EXPAND_THRESHOLD = 32
+    const COLLAPSE_THRESHOLD = 28
 
     const check = () => {
       const editor = wrapper.querySelector('[contenteditable]') as HTMLElement | null
       if (!editor) return
-      setIsOverflowing(editor.scrollHeight > SINGLE_LINE_THRESHOLD)
+
+      // Measure in a detached clone to avoid layout feedback loops
+      const clone = editor.cloneNode(true) as HTMLElement
+      clone.style.cssText = `
+        position:fixed;left:-9999px;top:0;
+        width:${editor.offsetWidth}px;
+        height:auto;min-height:0;max-height:none;
+        visibility:hidden;pointer-events:none;
+        white-space:pre-wrap;word-break:break-word;
+        font:${getComputedStyle(editor).font};
+        padding:${getComputedStyle(editor).padding};
+      `
+      document.body.appendChild(clone)
+      const contentHeight = clone.scrollHeight
+      document.body.removeChild(clone)
+
+      const current = isOverflowingRef.current
+      const next = current ? contentHeight > COLLAPSE_THRESHOLD : contentHeight > EXPAND_THRESHOLD
+
+      if (next !== current) {
+        isOverflowingRef.current = next
+        setIsOverflowing(next)
+      }
     }
 
     const observer = new ResizeObserver(check)
     observer.observe(wrapper)
-    // Also check immediately in case content already overflows
     check()
     return () => observer.disconnect()
   }, [value])
