@@ -101,7 +101,7 @@ export function CompactPromptArea({
       <div className={cn('flex', isExpanded ? 'flex-col' : 'items-center')}>
         {/* Prompt area region */}
         <div
-          className={cn('min-w-0 flex-1', isExpanded ? 'px-4 pt-3 pb-1' : 'overflow-hidden px-1')}
+          className={cn('min-w-0 flex-1', isExpanded ? 'px-5 pt-4 pb-2' : 'overflow-hidden px-3')}
           onClick={() => promptRef.current?.focus()}>
           <PromptArea
             ref={promptRef}
@@ -132,7 +132,7 @@ export function CompactPromptArea({
         <div
           className={cn(
             'flex shrink-0 items-center justify-between',
-            isExpanded ? 'px-2 pt-1 pb-2' : 'gap-1 pr-1',
+            isExpanded ? 'px-3 pt-1 pb-3' : 'gap-1.5 pr-2',
           )}>
           {/* Plus button – circular */}
           <button
