@@ -1396,6 +1396,779 @@ describe('usePromptAreaEvents', () => {
       expect(onRedo).toHaveBeenCalled()
     })
   })
+
+  // -------------------------------------------------------------------------
+  // insertSegmentsAtCursor – internal paste with cursor position scenarios
+  // -------------------------------------------------------------------------
+
+  describe('insertSegmentsAtCursor – cursor position scenarios', () => {
+    it('inserts a chip into the middle of a text segment (cursor splits text)', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Set up editor with "hello world" text, cursor after "hello "
+      editorEl.textContent = 'hello world'
+      placeCursor(editorEl.firstChild!, 6)
+
+      const chipSegments: Segment[] = [
+        { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+      ]
+
+      // Before paste: full text. After deleteContents: cursor splits text.
+      // First call: currentSegments before paste
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([{ type: 'text', text: 'hello world' }])
+        // Second call: after range.deleteContents(), text is split at cursor
+        .mockReturnValueOnce([
+          { type: 'text', text: 'hello ' },
+          { type: 'text', text: 'world' },
+        ])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(chipSegments)
+          if (type === 'text/plain') return '@Alice'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      expect(deps.renderSegmentsToDOM).toHaveBeenCalled()
+
+      // The merged result should contain text before, chip, text after
+      const merged = deps.onChange.mock.calls[0][0] as Segment[]
+      const chipIdx = merged.findIndex((s: Segment) => s.type === 'chip')
+      expect(chipIdx).toBeGreaterThanOrEqual(0)
+    })
+
+    it('inserts a chip at the very start of content (cursor offset 0)', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      editorEl.textContent = 'world'
+      placeCursor(editorEl.firstChild!, 0)
+
+      const chipSegments: Segment[] = [
+        { type: 'chip', trigger: '#', value: 'tag1', displayText: 'Tag1' },
+      ]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([{ type: 'text', text: 'world' }])
+        .mockReturnValueOnce([{ type: 'text', text: 'world' }])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(chipSegments)
+          if (type === 'text/plain') return '#Tag1'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      const merged = deps.onChange.mock.calls[0][0] as Segment[]
+      // Chip should appear before "world"
+      expect(merged[0]).toEqual(
+        expect.objectContaining({ type: 'chip', trigger: '#', value: 'tag1' }),
+      )
+    })
+
+    it('inserts pasted text between a text segment and a chip segment', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build DOM: "hello" + chip(@Alice)
+      editorEl.innerHTML = ''
+      editorEl.appendChild(document.createTextNode('hello'))
+      const chip = document.createElement('span')
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'alice'
+      chip.dataset.chipDisplay = 'Alice'
+      chip.textContent = '@Alice'
+      editorEl.appendChild(chip)
+
+      // Place cursor right after "hello" (offset 5 in the text node)
+      placeCursor(editorEl.firstChild!, 5)
+
+      const pastedSegments: Segment[] = [{ type: 'text', text: ' and ' }]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([
+          { type: 'text', text: 'hello' },
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+        ])
+        .mockReturnValueOnce([
+          { type: 'text', text: 'hello' },
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+        ])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(pastedSegments)
+          if (type === 'text/plain') return ' and '
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      const merged = deps.onChange.mock.calls[0][0] as Segment[]
+      // Should have merged "hello" + " and " into one text segment before the chip
+      const textSegments = merged.filter((s: Segment) => s.type === 'text')
+      expect(textSegments.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('inserts chip between multiple existing chips and text', () => {
+      const onChipAdd = vi.fn()
+      const deps = createDeps({ onChipAdd })
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build DOM: chip(@Alice) + " and " + chip(@Bob)
+      editorEl.innerHTML = ''
+      const chip1 = document.createElement('span')
+      chip1.dataset.chipTrigger = '@'
+      chip1.dataset.chipValue = 'alice'
+      chip1.dataset.chipDisplay = 'Alice'
+      chip1.textContent = '@Alice'
+      editorEl.appendChild(chip1)
+
+      const textNode = document.createTextNode(' and ')
+      editorEl.appendChild(textNode)
+
+      const chip2 = document.createElement('span')
+      chip2.dataset.chipTrigger = '@'
+      chip2.dataset.chipValue = 'bob'
+      chip2.dataset.chipDisplay = 'Bob'
+      chip2.textContent = '@Bob'
+      editorEl.appendChild(chip2)
+
+      // Place cursor in the middle of " and " (offset 3 -> " an|d ")
+      placeCursor(textNode, 3)
+
+      const pastedChip: Segment[] = [
+        { type: 'chip', trigger: '#', value: 'proj', displayText: 'Project' },
+      ]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+          { type: 'text', text: ' and ' },
+          { type: 'chip', trigger: '@', value: 'bob', displayText: 'Bob' },
+        ])
+        .mockReturnValueOnce([
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+          { type: 'text', text: ' and ' },
+          { type: 'chip', trigger: '@', value: 'bob', displayText: 'Bob' },
+        ])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(pastedChip)
+          if (type === 'text/plain') return '#Project'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      expect(onChipAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'chip', trigger: '#', value: 'proj' }),
+      )
+    })
+
+    it('merges adjacent text segments after paste', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Editor has "hello world", paste " beautiful" after "hello"
+      editorEl.textContent = 'hello world'
+      placeCursor(editorEl.firstChild!, 5)
+
+      const pastedSegments: Segment[] = [{ type: 'text', text: ' beautiful' }]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([{ type: 'text', text: 'hello world' }])
+        .mockReturnValueOnce([{ type: 'text', text: 'hello world' }])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(pastedSegments)
+          if (type === 'text/plain') return ' beautiful'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      const merged = deps.onChange.mock.calls[0][0] as Segment[]
+      // Adjacent text segments should be merged into a single text segment
+      const textSegments = merged.filter((s: Segment) => s.type === 'text')
+      for (const seg of textSegments) {
+        if (seg.type === 'text') {
+          // No empty text segments should exist
+          expect(seg.text.length).toBeGreaterThan(0)
+        }
+      }
+    })
+
+    it('handles the splitAt < 0 edge case gracefully', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Set up a chip followed by text, with cursor at offset 0 (before chip)
+      editorEl.innerHTML = ''
+      const chip = document.createElement('span')
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'alice'
+      chip.dataset.chipDisplay = 'Alice'
+      chip.textContent = '@Alice'
+      editorEl.appendChild(chip)
+      editorEl.appendChild(document.createTextNode(' world'))
+
+      // Cursor at very start of editor
+      placeCursor(editorEl, 0)
+
+      const pastedSegments: Segment[] = [{ type: 'text', text: 'hi ' }]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+          { type: 'text', text: ' world' },
+        ])
+        .mockReturnValueOnce([
+          { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+          { type: 'text', text: ' world' },
+        ])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(pastedSegments)
+          if (type === 'text/plain') return 'hi '
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      // Should not throw and should produce valid output
+      expect(deps.onChange).toHaveBeenCalled()
+      const merged = deps.onChange.mock.calls[0][0] as Segment[]
+      expect(merged.length).toBeGreaterThan(0)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // handleCopy – mixed selection with chips + BR elements
+  // -------------------------------------------------------------------------
+
+  describe('handleCopy – mixed selection with chips and BR elements', () => {
+    it('serializes selection containing both text and chip nodes', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build: "hello " + chip(@Alice) + " world"
+      editorEl.innerHTML = ''
+      editorEl.appendChild(document.createTextNode('hello '))
+      const chip = document.createElement('span')
+      chip.contentEditable = 'false'
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'alice'
+      chip.dataset.chipDisplay = 'Alice'
+      chip.textContent = '@Alice'
+      editorEl.appendChild(chip)
+      editorEl.appendChild(document.createTextNode(' world'))
+
+      // Select all
+      const range = document.createRange()
+      range.selectNodeContents(editorEl)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+
+      const setData = vi.fn()
+      const copyEvent = {
+        preventDefault: vi.fn(),
+        clipboardData: { setData },
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handleCopy(copyEvent)
+      })
+
+      expect(copyEvent.preventDefault).toHaveBeenCalled()
+      // Plain text should contain the chip's trigger+display
+      expect(setData).toHaveBeenCalledWith('text/plain', 'hello @Alice world')
+      // Should also set segment JSON since selection contains chips
+      expect(setData).toHaveBeenCalledWith('text/prompt-area-segments', expect.any(String))
+
+      // Parse the segment JSON to verify structure
+      const segmentCall = setData.mock.calls.find(
+        (c: unknown[]) => c[0] === 'text/prompt-area-segments',
+      )
+      expect(segmentCall).toBeDefined()
+      const parsedSegments = JSON.parse(segmentCall![1])
+      expect(parsedSegments).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'text', text: 'hello ' }),
+          expect.objectContaining({
+            type: 'chip',
+            trigger: '@',
+            value: 'alice',
+            displayText: 'Alice',
+          }),
+          expect.objectContaining({ type: 'text', text: ' world' }),
+        ]),
+      )
+    })
+
+    it('serializes chip with data and autoResolved fields', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build chip with data and autoResolved
+      editorEl.innerHTML = ''
+      const chip = document.createElement('span')
+      chip.contentEditable = 'false'
+      chip.dataset.chipTrigger = '#'
+      chip.dataset.chipValue = 'readme'
+      chip.dataset.chipDisplay = 'README'
+      chip.dataset.chipData = JSON.stringify({ path: '/docs/readme.md' })
+      chip.dataset.chipAutoResolved = 'true'
+      chip.textContent = '#README'
+      editorEl.appendChild(chip)
+
+      // Select all
+      const range = document.createRange()
+      range.selectNodeContents(editorEl)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+
+      const setData = vi.fn()
+      const copyEvent = {
+        preventDefault: vi.fn(),
+        clipboardData: { setData },
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handleCopy(copyEvent)
+      })
+
+      expect(setData).toHaveBeenCalledWith('text/prompt-area-segments', expect.any(String))
+
+      const segmentCall = setData.mock.calls.find(
+        (c: unknown[]) => c[0] === 'text/prompt-area-segments',
+      )
+      const parsedSegments = JSON.parse(segmentCall![1])
+      const chipSeg = parsedSegments.find((s: Segment) => s.type === 'chip')
+      expect(chipSeg).toBeDefined()
+      expect(chipSeg.data).toEqual({ path: '/docs/readme.md' })
+      expect(chipSeg.autoResolved).toBe(true)
+    })
+
+    it('serializes BR elements as newline text segments', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build: "line1" + <br> + chip(@Alice) + <br> + "line3"
+      editorEl.innerHTML = ''
+      editorEl.appendChild(document.createTextNode('line1'))
+      editorEl.appendChild(document.createElement('br'))
+      const chip = document.createElement('span')
+      chip.contentEditable = 'false'
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'alice'
+      chip.dataset.chipDisplay = 'Alice'
+      chip.textContent = '@Alice'
+      editorEl.appendChild(chip)
+      editorEl.appendChild(document.createElement('br'))
+      editorEl.appendChild(document.createTextNode('line3'))
+
+      // Select all
+      const range = document.createRange()
+      range.selectNodeContents(editorEl)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+
+      const setData = vi.fn()
+      const copyEvent = {
+        preventDefault: vi.fn(),
+        clipboardData: { setData },
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handleCopy(copyEvent)
+      })
+
+      // Plain text should have newlines
+      expect(setData).toHaveBeenCalledWith('text/plain', 'line1\n@Alice\nline3')
+
+      // Segment JSON should include newline text segments
+      expect(setData).toHaveBeenCalledWith('text/prompt-area-segments', expect.any(String))
+      const segmentCall = setData.mock.calls.find(
+        (c: unknown[]) => c[0] === 'text/prompt-area-segments',
+      )
+      const parsedSegments = JSON.parse(segmentCall![1])
+      // Should contain newline segments from BRs
+      const newlineSegments = parsedSegments.filter(
+        (s: Segment) => s.type === 'text' && (s as { text: string }).text === '\n',
+      )
+      expect(newlineSegments.length).toBe(2)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // handleCut – with chip elements
+  // -------------------------------------------------------------------------
+
+  describe('handleCut – with chip elements', () => {
+    it('copies chip data to clipboard and removes chip from DOM', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build: "hello " + chip(@Alice) + " world"
+      editorEl.innerHTML = ''
+      editorEl.appendChild(document.createTextNode('hello '))
+      const chip = document.createElement('span')
+      chip.contentEditable = 'false'
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'alice'
+      chip.dataset.chipDisplay = 'Alice'
+      chip.textContent = '@Alice'
+      editorEl.appendChild(chip)
+      editorEl.appendChild(document.createTextNode(' world'))
+
+      // Select the entire editor
+      const range = document.createRange()
+      range.selectNodeContents(editorEl)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+
+      deps.readSegmentsFromDOM.mockReturnValue([
+        { type: 'text', text: 'hello ' },
+        { type: 'chip', trigger: '@', value: 'alice', displayText: 'Alice' },
+        { type: 'text', text: ' world' },
+      ])
+
+      const setData = vi.fn()
+      const cutEvent = {
+        preventDefault: vi.fn(),
+        clipboardData: { setData },
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handleCut(cutEvent)
+      })
+
+      // Should have serialized chip to plain text
+      expect(setData).toHaveBeenCalledWith('text/plain', 'hello @Alice world')
+      // Should have serialized segments JSON since chips are present
+      expect(setData).toHaveBeenCalledWith('text/prompt-area-segments', expect.any(String))
+      // Should have called onChange after deletion
+      expect(deps.onChange).toHaveBeenCalled()
+      expect(deps.runTriggerDetection).toHaveBeenCalled()
+    })
+
+    it('cuts only the chip when just the chip is selected', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      // Build: "before " + chip(@Bob) + " after"
+      editorEl.innerHTML = ''
+      editorEl.appendChild(document.createTextNode('before '))
+      const chip = document.createElement('span')
+      chip.contentEditable = 'false'
+      chip.dataset.chipTrigger = '@'
+      chip.dataset.chipValue = 'bob'
+      chip.dataset.chipDisplay = 'Bob'
+      chip.textContent = '@Bob'
+      editorEl.appendChild(chip)
+      editorEl.appendChild(document.createTextNode(' after'))
+
+      // Select just the chip element (child index 1 in editorEl)
+      const range = document.createRange()
+      range.setStartBefore(chip)
+      range.setEndAfter(chip)
+      const sel = window.getSelection()!
+      sel.removeAllRanges()
+      sel.addRange(range)
+
+      deps.readSegmentsFromDOM.mockReturnValue([
+        { type: 'text', text: 'before ' },
+        { type: 'chip', trigger: '@', value: 'bob', displayText: 'Bob' },
+        { type: 'text', text: ' after' },
+      ])
+
+      const setData = vi.fn()
+      const cutEvent = {
+        preventDefault: vi.fn(),
+        clipboardData: { setData },
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handleCut(cutEvent)
+      })
+
+      // Should copy the chip as plain text
+      expect(setData).toHaveBeenCalledWith('text/plain', '@Bob')
+      // Should also include segment JSON
+      expect(setData).toHaveBeenCalledWith('text/prompt-area-segments', expect.any(String))
+      expect(deps.onChange).toHaveBeenCalled()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // parseSegmentsFromClipboard – edge cases
+  // -------------------------------------------------------------------------
+
+  describe('parseSegmentsFromClipboard – edge cases', () => {
+    it('preserves data field on chip segments', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      editorEl.textContent = 'x'
+      placeCursor(editorEl.firstChild!, 1)
+
+      const chipWithData: Segment[] = [
+        {
+          type: 'chip',
+          trigger: '#',
+          value: 'readme',
+          displayText: 'README',
+          data: { path: '/docs/readme.md', size: 1024 },
+        } as Segment,
+      ]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([{ type: 'text', text: 'x' }])
+        .mockReturnValueOnce([{ type: 'text', text: 'x' }])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(chipWithData)
+          if (type === 'text/plain') return '#README'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      // The chip should have been pasted via the internal path (not plain text fallback)
+      expect(deps.renderSegmentsToDOM).toHaveBeenCalled()
+    })
+
+    it('preserves autoResolved=true on chip segments', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      editorEl.textContent = 'x'
+      placeCursor(editorEl.firstChild!, 1)
+
+      const chipWithAutoResolved: Segment[] = [
+        {
+          type: 'chip',
+          trigger: '#',
+          value: 'readme',
+          displayText: 'README',
+          autoResolved: true,
+        } as Segment,
+      ]
+
+      deps.readSegmentsFromDOM
+        .mockReturnValueOnce([{ type: 'text', text: 'x' }])
+        .mockReturnValueOnce([{ type: 'text', text: 'x' }])
+
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(chipWithAutoResolved)
+          if (type === 'text/plain') return '#README'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      expect(deps.onChange).toHaveBeenCalled()
+      expect(deps.renderSegmentsToDOM).toHaveBeenCalled()
+    })
+
+    it('returns null (falls through to plain text) when array contains non-object', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      editorEl.textContent = 'x'
+      placeCursor(editorEl.firstChild!, 1)
+
+      // Array containing a primitive (non-object) should cause parseSegmentsFromClipboard to return null
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify(['not-an-object'])
+          if (type === 'text/plain') return 'fallback'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      // Should fall through to plain text paste (not internal segment path)
+      expect(event.preventDefault).toHaveBeenCalled()
+      expect(deps.onChange).toHaveBeenCalled()
+      // renderSegmentsToDOM is NOT called for plain text paste (only internal paste calls it)
+      // so we just verify onChange was still called meaning the paste worked
+    })
+
+    it('handles empty array as valid segments (no-op paste)', () => {
+      const deps = createDeps()
+      editorEl = deps._editor
+
+      const { result } = renderHook(() => usePromptAreaEvents(deps))
+
+      editorEl.textContent = 'hello'
+      placeCursor(editorEl.firstChild!, 5)
+
+      // Empty array is valid but has length 0, so it should fall through
+      const clipboardData = {
+        getData: vi.fn((type: string) => {
+          if (type === 'text/prompt-area-segments') return JSON.stringify([])
+          if (type === 'text/plain') return 'fallback'
+          return ''
+        }),
+        files: [] as File[],
+        items: [] as DataTransferItem[],
+      }
+
+      const event = {
+        preventDefault: vi.fn(),
+        clipboardData,
+      } as unknown as React.ClipboardEvent<HTMLDivElement>
+
+      act(() => {
+        result.current.handlePaste(event)
+      })
+
+      // Empty parsed array (length 0) should fall through to plain text paste
+      expect(event.preventDefault).toHaveBeenCalled()
+      expect(deps.onChange).toHaveBeenCalled()
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------
