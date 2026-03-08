@@ -56,6 +56,12 @@ import {
   actionBarMinimalCode,
   ActionBarDisabledExample,
   actionBarDisabledCode,
+  StatusBarAboveExample,
+  statusBarAboveCode,
+  StatusBarBelowExample,
+  statusBarBelowCode,
+  StatusBarBothExample,
+  statusBarBothCode,
 } from './examples'
 
 // ---------------------------------------------------------------------------
@@ -927,6 +933,53 @@ export default function Home() {
           </p>
           <ExampleShowcase code={actionBarDisabledCode}>
             <ActionBarDisabledExample />
+          </ExampleShowcase>
+        </div>
+      </div>
+
+      {/* Status Bar */}
+      <div className="flex flex-col gap-6">
+        <div id="status-bar" className="flex scroll-mt-16 flex-col gap-3">
+          <SectionHeading id="status-bar" as="h2">
+            Status Bar
+          </SectionHeading>
+          <p className="text-muted-foreground">
+            A horizontal bar with left and right slots for displaying contextual information. Sits
+            above or below the PromptArea to show things like branch name, model selector, or
+            project context. Independently installable.
+          </p>
+          <div className="bg-muted rounded-md px-3 py-2 font-mono text-sm">
+            npx shadcn@latest add https://prompt-area.com/r/status-bar.json
+          </div>
+        </div>
+
+        <div id="status-bar-above" className="flex scroll-mt-16 flex-col gap-2">
+          <SectionHeading id="status-bar-above">Above Input</SectionHeading>
+          <p className="text-muted-foreground text-xs">
+            Status bar above the prompt area showing project context and settings.
+          </p>
+          <ExampleShowcase code={statusBarAboveCode}>
+            <StatusBarAboveExample />
+          </ExampleShowcase>
+        </div>
+
+        <div id="status-bar-below" className="flex scroll-mt-16 flex-col gap-2">
+          <SectionHeading id="status-bar-below">Below Input</SectionHeading>
+          <p className="text-muted-foreground text-xs">
+            Status bar below the prompt area with action shortcuts and model selector.
+          </p>
+          <ExampleShowcase code={statusBarBelowCode}>
+            <StatusBarBelowExample />
+          </ExampleShowcase>
+        </div>
+
+        <div id="status-bar-both" className="flex scroll-mt-16 flex-col gap-2">
+          <SectionHeading id="status-bar-both">Combined with Action Bar</SectionHeading>
+          <p className="text-muted-foreground text-xs">
+            Status bar on top with an action bar below the input for a full-featured layout.
+          </p>
+          <ExampleShowcase code={statusBarBothCode}>
+            <StatusBarBothExample />
           </ExampleShowcase>
         </div>
       </div>
