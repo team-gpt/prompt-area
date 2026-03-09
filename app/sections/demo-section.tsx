@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   AtSign,
   Type,
@@ -16,6 +17,9 @@ import {
   ChevronDown,
   Map,
   Globe,
+  CheckCircle2,
+  X,
+  FileText,
 } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
 import type {
@@ -27,6 +31,13 @@ import type {
 import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
 import { StatusBar } from '@/registry/new-york/blocks/status-bar/status-bar'
 import { USERS, COMMANDS, TAGS } from './mock-data'
+
+type SubmissionData = {
+  segments: Segment[]
+  files: PromptAreaFile[]
+  model: string
+  timestamp: number
+}
 
 const DEMO_INITIAL_SEGMENTS: Segment[] = [
   { type: 'chip', trigger: '/', value: 'summarize', displayText: 'summarize' },
@@ -95,6 +106,7 @@ export function DemoSection() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [selectedModel, setSelectedModel] = useState<(typeof MODELS)[number]>(MODELS[0])
+  const [submission, setSubmission] = useState<SubmissionData | null>(null)
   const promptRef = useRef<PromptAreaHandle>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const modelMenuRef = useRef<HTMLDivElement>(null)
@@ -123,9 +135,16 @@ export function DemoSection() {
 
   const handleSubmit = useCallback(() => {
     if (isEmpty) return
+    setSubmission({
+      segments: [...segments],
+      files: [...files],
+      model: selectedModel.label,
+      timestamp: Date.now(),
+    })
     promptRef.current?.clear()
     setSegments([])
-  }, [isEmpty])
+    setFiles([])
+  }, [isEmpty, segments, files, selectedModel])
 
   const insertTrigger = useCallback((char: string) => {
     promptRef.current?.focus()
@@ -308,6 +327,79 @@ export function DemoSection() {
       <p className="text-muted-foreground text-center text-xs">
         Try editing, type <code>@</code> to mention, <code>/</code> for commands, or just hit Enter
       </p>
+
+      <AnimatePresence>
+        {submission && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="overflow-hidden">
+            <div className="rounded-xl border border-green-200 bg-green-50/50 shadow-sm dark:border-green-900 dark:bg-green-950/30">
+              <div className="flex items-center justify-between border-b border-green-200 px-4 py-2.5 dark:border-green-900">
+                <div className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="size-4" />
+                  Prompt submitted
+                  <span className="text-muted-foreground text-xs font-normal">
+                    via {submission.model}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground rounded-md p-0.5 transition-colors"
+                  aria-label="Dismiss"
+                  onClick={() => setSubmission(null)}>
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              <div className="px-4 py-3">
+                <div className="text-sm leading-relaxed">
+                  {submission.segments.map((seg, i) => {
+                    if (seg.type === 'text') {
+                      return seg.text.split('\n').map((line, j, arr) => (
+                        <span key={`${i}-${j}`}>
+                          {line}
+                          {j < arr.length - 1 && <br />}
+                        </span>
+                      ))
+                    }
+                    const chipColors: Record<string, string> = {
+                      '@': 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+                      '/': 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300',
+                      '#': 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+                    }
+                    return (
+                      <span
+                        key={i}
+                        className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium ${chipColors[seg.trigger] ?? 'bg-muted text-foreground'}`}>
+                        {seg.trigger}
+                        {seg.displayText}
+                      </span>
+                    )
+                  })}
+                </div>
+
+                {submission.files.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {submission.files.map((file) => (
+                      <div
+                        key={file.id}
+                        className="bg-background flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs">
+                        <FileText className="text-muted-foreground size-3" />
+                        <span className="max-w-[160px] truncate">{file.name}</span>
+                        <span className="text-muted-foreground">
+                          {file.size ? `${(file.size / 1_000_000).toFixed(1)}MB` : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
