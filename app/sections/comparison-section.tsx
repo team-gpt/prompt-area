@@ -263,7 +263,7 @@ export function ComparisonSection() {
                 'min-w-[120px] border-r px-4 py-3 text-center',
                 'bg-primary/5 border-primary/20',
               )}>
-              <div className="text-xs font-semibold">Prompt Area</div>
+              <a href="https://github.com/team-gpt/prompt-area" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold underline decoration-muted-foreground/30 underline-offset-2 hover:decoration-foreground/50">Prompt Area</a>
             </th>
             {COMPETITORS.map((c) => (
               <th
