@@ -7,26 +7,22 @@ import { cn } from '@/lib/utils'
 // Data
 // ---------------------------------------------------------------------------
 
-interface Competitor {
-  id: string
-  name: string
-  description: string
-}
-
-const COMPETITORS: Competitor[] = [
+const COMPETITORS = [
   { id: 'react-mentions', name: 'react-mentions', description: 'Mention library' },
   { id: 'tiptap', name: 'Tiptap', description: 'ProseMirror framework' },
   { id: 'lexical', name: 'Lexical', description: 'Meta editor framework' },
   { id: 'plate', name: 'Plate.js', description: 'Slate framework' },
   { id: 'autosize', name: 'react-textarea-autosize', description: 'Auto-resize textarea' },
-]
+] as const satisfies readonly { id: string; name: string; description: string }[]
+
+type CompetitorId = (typeof COMPETITORS)[number]['id']
 
 type Support = 'full' | 'partial' | 'none'
 
 interface ComparisonFeature {
   name: string
   promptArea: Support | string
-  values: Record<string, Support | string>
+  values: Record<CompetitorId, Support | string>
 }
 
 const FEATURES: ComparisonFeature[] = [
