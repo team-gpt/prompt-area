@@ -827,6 +827,31 @@ export function parseInlineMarkdown(text: string): MarkdownToken[] {
 }
 
 // ---------------------------------------------------------------------------
+// List prefix normalization
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalizes markdown list prefixes in segments:
+ * - When markdown is enabled, converts "- " at line starts to "• "
+ * - When markdown is disabled, converts "• " at line starts to "- "
+ *
+ * Returns the original array unchanged if no conversions were needed.
+ */
+export function normalizeListPrefixes(segments: Segment[], markdownEnabled: boolean): Segment[] {
+  let changed = false
+  const result = segments.map((seg) => {
+    if (seg.type !== 'text') return seg
+    const newText = markdownEnabled
+      ? seg.text.replace(/(^|\n)(\s*)- /g, '$1$2\u2022 ')
+      : seg.text.replace(/(^|\n)(\s*)\u2022 /g, '$1$2- ')
+    if (newText === seg.text) return seg
+    changed = true
+    return { ...seg, text: newText }
+  })
+  return changed ? result : segments
+}
+
+// ---------------------------------------------------------------------------
 // Segment comparison
 // ---------------------------------------------------------------------------
 

@@ -25,6 +25,7 @@ import {
   removeListPrefix,
   replaceTextRange,
   toggleMarkdownWrap,
+  normalizeListPrefixes,
 } from './prompt-area-engine'
 import {
   isHTMLElement,
@@ -387,8 +388,19 @@ export function usePromptArea({
   useEffect(() => {
     if (isSyncing.current) return
     if (segmentsEqual(value, lastRenderedValue.current)) return
+
+    // Normalize list prefixes (e.g., "- " → "• " when markdown is on)
+    // so externally-provided segments render bullet characters correctly.
+    if (markdownEnabled) {
+      const normalized = normalizeListPrefixes(value, true)
+      if (normalized !== value) {
+        onChange(normalized)
+        return // onChange will trigger a re-render with the normalized value
+      }
+    }
+
     renderSegmentsToDOM(value)
-  }, [value, renderSegmentsToDOM])
+  }, [value, renderSegmentsToDOM, markdownEnabled, onChange])
 
   // Re-render when markdown mode changes to apply/strip decorations
   // Also convert bullet characters: • ↔ - in text segments
@@ -397,17 +409,8 @@ export function usePromptArea({
     if (prevMarkdown.current === markdownEnabled) return
     prevMarkdown.current = markdownEnabled
 
-    const converted = value.map((seg) => {
-      if (seg.type !== 'text') return seg
-      // markdown OFF: replace "• " with "- " | markdown ON: replace "- " with "• "
-      const newText = markdownEnabled
-        ? seg.text.replace(/(^|\n)(\s*)- /g, '$1$2\u2022 ')
-        : seg.text.replace(/(^|\n)(\s*)\u2022 /g, '$1$2- ')
-      return newText === seg.text ? seg : { ...seg, text: newText }
-    })
-
-    const changed = converted.some((seg, i) => seg !== value[i])
-    if (changed) {
+    const converted = normalizeListPrefixes(value, markdownEnabled)
+    if (converted !== value) {
       onChange(converted)
     } else {
       renderSegmentsToDOM(value)

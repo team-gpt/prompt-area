@@ -19,6 +19,7 @@ import {
   parseInlineMarkdown,
   toggleMarkdownWrap,
   segmentsEqual,
+  normalizeListPrefixes,
 } from '../prompt-area-engine'
 
 // ---------------------------------------------------------------------------
@@ -1384,5 +1385,58 @@ describe('resolveChip cursor offset', () => {
 
     // "hey " (4) + "@Bob" (4) + " ping " (6) + "@Carol" (6) + " " (1) = 21
     expect(result.cursorOffset).toBe(21)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// normalizeListPrefixes
+// ---------------------------------------------------------------------------
+
+describe('normalizeListPrefixes', () => {
+  it('converts dashes to bullets when markdown is enabled', () => {
+    const segments: Segment[] = [{ type: 'text', text: '- item one\n- item two' }]
+    const result = normalizeListPrefixes(segments, true)
+    expect(result).not.toBe(segments)
+    expect(result[0]).toEqual({ type: 'text', text: '\u2022 item one\n\u2022 item two' })
+  })
+
+  it('converts bullets to dashes when markdown is disabled', () => {
+    const segments: Segment[] = [{ type: 'text', text: '\u2022 item one\n\u2022 item two' }]
+    const result = normalizeListPrefixes(segments, false)
+    expect(result).not.toBe(segments)
+    expect(result[0]).toEqual({ type: 'text', text: '- item one\n- item two' })
+  })
+
+  it('preserves indentation during conversion', () => {
+    const segments: Segment[] = [{ type: 'text', text: '- root\n  - nested' }]
+    const result = normalizeListPrefixes(segments, true)
+    expect(result[0]).toEqual({ type: 'text', text: '\u2022 root\n  \u2022 nested' })
+  })
+
+  it('returns same array if no changes needed', () => {
+    const segments: Segment[] = [{ type: 'text', text: '\u2022 already bullets' }]
+    const result = normalizeListPrefixes(segments, true)
+    expect(result).toBe(segments)
+  })
+
+  it('skips chip segments', () => {
+    const segments: Segment[] = [
+      { type: 'text', text: '- item' },
+      { type: 'chip', trigger: '@', value: 'user', displayText: 'User' },
+    ]
+    const result = normalizeListPrefixes(segments, true)
+    expect(result[0]).toEqual({ type: 'text', text: '\u2022 item' })
+    expect(result[1]).toBe(segments[1])
+  })
+
+  it('handles text with mixed content and list lines', () => {
+    const segments: Segment[] = [
+      { type: 'text', text: 'format as:\n- **Key messages**\n- *Action items*' },
+    ]
+    const result = normalizeListPrefixes(segments, true)
+    expect(result[0]).toEqual({
+      type: 'text',
+      text: 'format as:\n\u2022 **Key messages**\n\u2022 *Action items*',
+    })
   })
 })
