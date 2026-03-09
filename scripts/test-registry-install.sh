@@ -6,13 +6,14 @@
 # installed into a fresh Next.js project and compile successfully.
 #
 # Steps:
-#   1. Build the registry JSON files
-#   2. Scaffold a fresh Next.js app with create-next-app
-#   3. Init shadcn and install every registry component via `shadcn add`
-#   4. Fix cross-component imports (file-based installs can't resolve
+#   1. Build the source app to verify it compiles cleanly
+#   2. Build the registry JSON files
+#   3. Scaffold a fresh Next.js app with create-next-app
+#   4. Init shadcn and install every registry component via `shadcn add`
+#   5. Fix cross-component imports (file-based installs can't resolve
 #      registryDependencies, so paths need post-processing)
-#   5. Create a smoke-test page that imports all components
-#   6. Build the fresh app (typecheck + compile)
+#   6. Create a smoke-test page that imports all components
+#   7. Build the fresh app (typecheck + compile)
 # ------------------------------------------------------------------
 set -euo pipefail
 
@@ -28,16 +29,22 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# ── 1. Build the registry ────────────────────────────────────────
-echo "── Step 1: Building registry..."
+# ── 1. Build the source app ──────────────────────────────────────
+echo "── Step 1: Building source app to verify it compiles cleanly..."
 cd "${REPO_ROOT}"
+pnpm build
+echo "   Source app builds OK."
+
+# ── 2. Build the registry ────────────────────────────────────────
+echo ""
+echo "── Step 2: Building registry..."
 pnpm registry:build
 echo "   Registry built. Files in public/r/:"
 ls public/r/
 
-# ── 2. Scaffold a fresh Next.js app ─────────────────────────────
+# ── 3. Scaffold a fresh Next.js app ─────────────────────────────
 echo ""
-echo "── Step 2: Scaffolding fresh Next.js app..."
+echo "── Step 3: Scaffolding fresh Next.js app..."
 cd "${TEST_DIR}"
 
 # Pipe newline to accept any interactive prompts (e.g. React Compiler)
@@ -55,13 +62,13 @@ printf '\n' | npx --yes create-next-app@latest test-app \
 cd test-app
 echo "   App created at ${TEST_DIR}/test-app"
 
-# ── 3. Init shadcn and install registry components ───────────────
+# ── 4. Init shadcn and install registry components ───────────────
 echo ""
-echo "── Step 3: Initializing shadcn..."
+echo "── Step 4: Initializing shadcn..."
 pnpm dlx shadcn@latest init --yes --defaults 2>&1 | tail -5
 
 echo ""
-echo "── Step 4: Installing registry components..."
+echo "── Step 5: Installing registry components..."
 
 COMPONENTS=("prompt-area" "action-bar" "status-bar")
 
@@ -93,9 +100,9 @@ echo ""
 echo "   Installing peer dependencies (lucide-react, framer-motion)..."
 pnpm add lucide-react framer-motion 2>&1 | tail -3
 
-# ── 4. Verify installed files ────────────────────────────────────
+# ── 5. Verify installed files ────────────────────────────────────
 echo ""
-echo "── Step 5: Verifying installed component files..."
+echo "── Step 6: Verifying installed component files..."
 
 EXPECTED_FILES=(
   "src/components/prompt-area.tsx"
@@ -127,12 +134,12 @@ for file in "${EXPECTED_FILES[@]}"; do
   fi
 done
 
-# ── 5. Fix post-install issues ───────────────────────────────────
+# ── 6. Fix post-install issues ───────────────────────────────────
 # File-based installs have two known issues:
 #   a) shadcn overwrites types.ts when multiple components share that filename
 #   b) Cross-component @/registry/ imports are not rewritten correctly
 echo ""
-echo "── Step 6: Fixing post-install issues..."
+echo "── Step 7: Fixing post-install issues..."
 
 # a) Rebuild types.ts by extracting and merging types from all registry JSONs.
 #    Each component's types.ts gets overwritten by the next install, so we
@@ -194,9 +201,9 @@ export default function RootLayout({
 LAYOUT_EOF
 echo "   Layout updated to use system fonts"
 
-# ── 6. Create a smoke-test page ──────────────────────────────────
+# ── 7. Create a smoke-test page ──────────────────────────────────
 echo ""
-echo "── Step 7: Creating smoke-test page..."
+echo "── Step 8: Creating smoke-test page..."
 mkdir -p src/app/smoke-test
 
 cat > src/app/smoke-test/page.tsx << 'SMOKE_EOF'
@@ -247,9 +254,9 @@ export default function SmokeTest() {
 SMOKE_EOF
 echo "   Smoke-test page created"
 
-# ── 7. Build the app ─────────────────────────────────────────────
+# ── 8. Build the app ─────────────────────────────────────────────
 echo ""
-echo "── Step 8: Building the test app..."
+echo "── Step 9: Building the test app..."
 pnpm build 2>&1
 
 echo ""
