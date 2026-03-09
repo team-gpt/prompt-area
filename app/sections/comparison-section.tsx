@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils'
 // ---------------------------------------------------------------------------
 
 const COMPETITORS = [
-  { id: 'react-mentions', name: 'react-mentions', description: 'Mention library' },
-  { id: 'tiptap', name: 'Tiptap', description: 'ProseMirror framework' },
-  { id: 'lexical', name: 'Lexical', description: 'Meta editor framework' },
-  { id: 'plate', name: 'Plate.js', description: 'Slate framework' },
-  { id: 'blocknote', name: 'BlockNote', description: 'ProseMirror block editor' },
-  { id: 'blocksuite', name: 'BlockSuite', description: 'AFFiNE editor toolkit' },
-  { id: 'autosize', name: 'react-textarea-autosize', description: 'Auto-resize textarea' },
-] as const satisfies readonly { id: string; name: string; description: string }[]
+  { id: 'react-mentions', name: 'react-mentions', description: 'Mention library', url: 'https://github.com/signavio/react-mentions' },
+  { id: 'tiptap', name: 'Tiptap', description: 'ProseMirror framework', url: 'https://tiptap.dev' },
+  { id: 'lexical', name: 'Lexical', description: 'Meta editor framework', url: 'https://lexical.dev' },
+  { id: 'plate', name: 'Plate.js', description: 'Slate framework', url: 'https://platejs.org' },
+  { id: 'blocknote', name: 'BlockNote', description: 'ProseMirror block editor', url: 'https://blocknotejs.org' },
+  { id: 'blocksuite', name: 'BlockSuite', description: 'AFFiNE editor toolkit', url: 'https://blocksuite.io' },
+  { id: 'autosize', name: 'react-textarea-autosize', description: 'Auto-resize textarea', url: 'https://github.com/Andarist/react-textarea-autosize' },
+] as const satisfies readonly { id: string; name: string; description: string; url: string }[]
 
 type CompetitorId = (typeof COMPETITORS)[number]['id']
 
@@ -270,7 +270,7 @@ export function ComparisonSection() {
                 key={c.id}
                 scope="col"
                 className="min-w-[120px] border-r px-4 py-3 text-center last:border-r-0">
-                <div className="text-xs font-semibold">{c.name}</div>
+                <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold underline decoration-muted-foreground/30 underline-offset-2 hover:decoration-foreground/50">{c.name}</a>
                 <div className="text-muted-foreground text-[10px] font-normal">{c.description}</div>
               </th>
             ))}
