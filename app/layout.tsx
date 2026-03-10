@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
-import Script from 'next/script'
 import './globals.css'
 import { SidebarLayout } from '@/components/nav-sidebar'
-import { Analytics } from '@vercel/analytics/next'
+import { Analytics } from '@/components/analytics'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff2',
@@ -126,13 +125,6 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SidebarLayout>{children}</SidebarLayout>
         <Analytics />
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-NWT3L9S7B9"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NWT3L9S7B9');`}
-        </Script>
       </body>
     </html>
   )
