@@ -92,10 +92,14 @@ export default function HomeContent() {
           Features
         </SectionHeading>
         <p className="text-muted-foreground text-sm">
-          Everything you need for a production-ready rich text input. See how we stack up against alternatives in the{' '}
-          <a href="#comparison" className="text-foreground underline underline-offset-2 hover:decoration-foreground/50">
+          Everything you need for a production-ready rich text input. See how we stack up against
+          alternatives in the{' '}
+          <a
+            href="#comparison"
+            className="text-foreground hover:decoration-foreground/50 underline underline-offset-2">
             comparison table
-          </a>.
+          </a>
+          .
         </p>
         <FeaturesGrid />
       </div>
@@ -424,6 +428,23 @@ export default function HomeContent() {
         </p>
         <ComparisonSection />
       </div>
+
+      {/* Footer */}
+      <footer className="border-border text-muted-foreground border-t pt-6 text-center text-xs">
+        <div className="flex items-center justify-center gap-3">
+          <a
+            href="/llms.txt"
+            className="hover:text-foreground underline underline-offset-4 transition-colors">
+            llms.txt
+          </a>
+          <span aria-hidden="true">&middot;</span>
+          <a
+            href="/llms-full.txt"
+            className="hover:text-foreground underline underline-offset-4 transition-colors">
+            llms-full.txt
+          </a>
+        </div>
+      </footer>
     </div>
   )
 }
