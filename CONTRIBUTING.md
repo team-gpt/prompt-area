@@ -1,0 +1,70 @@
+# Contributing to Prompt Area
+
+Thanks for your interest in contributing! This guide will help you get started.
+
+## Development Setup
+
+```bash
+pnpm install          # Install dependencies (pnpm required)
+pnpm dev              # Start dev server (Next.js + Turbopack)
+```
+
+> **Note:** This project enforces pnpm. Running `npm install` or `yarn install` will fail.
+
+## Making Changes
+
+1. Fork the repository and create a branch from `main`
+2. Make your changes in the `registry/new-york/blocks/` directory for component code
+3. Add or update tests in `__tests__/` directories alongside the code you changed
+4. Run the checks below before submitting
+
+## Code Quality
+
+Before submitting a pull request, make sure all checks pass:
+
+```bash
+pnpm lint             # Lint with ESLint
+pnpm typecheck        # Type-check with TypeScript
+pnpm test             # Run tests with Vitest
+pnpm build            # Verify production build
+```
+
+A pre-commit hook (via Lefthook) will automatically lint and format staged files.
+
+## Code Style
+
+- Code is formatted with Prettier — run `pnpm format` to auto-fix
+- Follow existing patterns in the codebase
+- Use TypeScript strict mode — no `any` types without justification
+- Keep the zero-dependency philosophy for the core component
+
+## Pull Requests
+
+- Keep PRs focused — one feature or fix per PR
+- Write a clear description of what changed and why
+- Include before/after screenshots for visual changes
+- Make sure CI passes before requesting review
+
+## Reporting Issues
+
+- Use GitHub Issues to report bugs or request features
+- Include a minimal reproduction when reporting bugs
+- Check existing issues before creating a new one
+
+## Project Structure
+
+```
+registry/new-york/blocks/
+├── prompt-area/          # Core component (this is what gets distributed)
+├── action-bar/           # Toolbar component
+├── status-bar/           # Status display component
+└── chat-prompt-layout/   # Chat UI layout component
+
+app/
+├── page.tsx              # Landing page
+└── examples/             # Interactive demos
+```
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
