@@ -290,9 +290,17 @@ export function decorateURLsInEditor(editor: HTMLElement): boolean {
         fragment.appendChild(document.createTextNode(text.slice(lastIndex, index)))
       }
 
-      // Create the link element
+      // Create the link element – sanitize the URL to prevent XSS (CWE-79)
       const anchor = document.createElement('a')
-      anchor.href = url
+      try {
+        const parsed = new URL(url)
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          continue
+        }
+        anchor.href = parsed.href
+      } catch {
+        continue
+      }
       anchor.target = '_blank'
       anchor.rel = 'noopener noreferrer'
       anchor.dataset.url = 'true'
