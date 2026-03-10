@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
 import './globals.css'
 import { SidebarLayout } from '@/components/nav-sidebar'
-import { Analytics } from '@vercel/analytics/next'
+import { Analytics } from '@/components/analytics'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff2',
