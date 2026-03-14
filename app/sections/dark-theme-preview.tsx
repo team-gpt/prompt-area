@@ -9,13 +9,26 @@ export function DarkThemePreview() {
   const [lightSegments, setLightSegments] = useState<Segment[]>([])
   const [darkSegments, setDarkSegments] = useState<Segment[]>([])
 
-  const triggers: TriggerConfig[] = [
+  const searchUsers = (q: string) =>
+    USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase()))
+
+  const lightTriggers: TriggerConfig[] = [
     {
       char: '@',
       position: 'any',
       mode: 'dropdown',
-      chipClassName: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-      onSearch: (q) => USERS.filter((u) => u.label.toLowerCase().includes(q.toLowerCase())),
+      chipClassName: 'bg-blue-100 text-blue-700',
+      onSearch: searchUsers,
+    },
+  ]
+
+  const darkTriggers: TriggerConfig[] = [
+    {
+      char: '@',
+      position: 'any',
+      mode: 'dropdown',
+      chipClassName: 'bg-blue-900 text-blue-300',
+      onSearch: searchUsers,
     },
   ]
 
@@ -40,7 +53,7 @@ export function DarkThemePreview() {
           <PromptArea
             value={lightSegments}
             onChange={setLightSegments}
-            triggers={triggers}
+            triggers={lightTriggers}
             placeholder="Type @ to mention..."
             minHeight={48}
           />
@@ -65,7 +78,7 @@ export function DarkThemePreview() {
           <PromptArea
             value={darkSegments}
             onChange={setDarkSegments}
-            triggers={triggers}
+            triggers={darkTriggers}
             placeholder="Type @ to mention..."
             minHeight={48}
           />
