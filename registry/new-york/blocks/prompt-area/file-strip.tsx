@@ -103,9 +103,7 @@ function FileCard({
         </div>
       )}
 
-      {onRemove && (
-        <RemoveButton onClick={() => onRemove(file)} label={`Remove ${file.name}`} />
-      )}
+      {onRemove && <RemoveButton onClick={() => onRemove(file)} label={`Remove ${file.name}`} />}
     </div>
   )
 }
@@ -151,16 +149,18 @@ export function FileStrip({ files, onRemove, onClick, className }: FileStripProp
           />
         ))}
         {collapsible && (
-          <button
-            ref={toggleRef}
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className={cn(
-              'border-border text-muted-foreground hover:bg-accent flex flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors',
-              compact ? 'h-10 px-3 text-xs' : 'h-14 px-4 text-sm',
-            )}>
-            {expanded ? 'Show less' : `+${hiddenCount} more`}
-          </button>
+          <div role="listitem">
+            <button
+              ref={toggleRef}
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className={cn(
+                'border-border text-muted-foreground hover:bg-accent flex flex-shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors',
+                compact ? 'h-10 px-3 text-xs' : 'h-14 px-4 text-sm',
+              )}>
+              {expanded ? 'Show less' : `+${hiddenCount} more`}
+            </button>
+          </div>
         )}
       </div>
 
