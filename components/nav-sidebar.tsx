@@ -383,9 +383,15 @@ function NavSidebar() {
   const navRef = useRef<HTMLElement | null>(null)
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map())
   const sidebarRef = useRef<HTMLElement>(null)
+  const pathname = usePathname()
 
   const handleNavigate = useCallback(
     (id: string) => {
+      // If not on the home page, navigate there with the target hash
+      if (pathname !== '/') {
+        window.location.href = `/#${id}`
+        return
+      }
       const el = document.getElementById(id)
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -396,7 +402,7 @@ function NavSidebar() {
         setTimeout(close, 150)
       }
     },
-    [close, isDesktop],
+    [close, isDesktop, pathname],
   )
 
   // Focus sidebar on open for keyboard accessibility (mobile only)
