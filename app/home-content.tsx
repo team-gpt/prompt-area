@@ -17,6 +17,7 @@ export default function HomeContent() {
             href="https://github.com/team-gpt/prompt-area"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="GitHub repository"
             className="text-muted-foreground hover:text-foreground transition-colors">
             <svg
               xmlns="http://www.w3.org/2000/svg"
