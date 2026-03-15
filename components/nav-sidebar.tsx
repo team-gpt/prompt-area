@@ -20,6 +20,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'hero', label: 'Introduction' },
   { id: 'demo', label: 'Demo' },
+  { id: 'installation', label: 'Installation' },
   { id: 'features', label: 'Features' },
   { id: 'inspector', label: 'Inspector' },
   {
