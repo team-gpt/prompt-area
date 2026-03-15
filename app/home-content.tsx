@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic'
-import { InstallBlock } from './sections/install-block'
 
 const DemoSection = dynamic(() =>
   import('./sections/demo-section').then((m) => ({ default: m.DemoSection })),
@@ -48,7 +47,9 @@ export default function HomeContent() {
           </a>{' '}
           component.
         </p>
-        <InstallBlock />
+        <div className="bg-muted rounded-md px-3 py-2 font-mono text-sm">
+          npx shadcn@latest add https://prompt-area.com/r/prompt-area.json
+        </div>
       </div>
 
       {/* Demo */}

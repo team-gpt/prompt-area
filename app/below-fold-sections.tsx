@@ -44,6 +44,7 @@ import {
   rotatingPlaceholdersCode,
 } from './examples'
 import { SectionHeading } from './sections/section-heading'
+import { InstallSection } from './sections/install-block'
 import { FeaturesGrid } from './sections/features-grid'
 import { InspectorSection } from './sections/inspector-section'
 import { DarkThemePreview } from './sections/dark-theme-preview'
@@ -52,6 +53,9 @@ import { ComparisonSection } from './sections/comparison-section'
 export default function BelowFoldSections() {
   return (
     <>
+      {/* Installation */}
+      <InstallSection />
+
       {/* Features */}
       <div id="features" className="flex scroll-mt-16 flex-col gap-4">
         <SectionHeading id="features" as="h2">
