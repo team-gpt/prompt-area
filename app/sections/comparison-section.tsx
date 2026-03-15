@@ -242,27 +242,27 @@ const FEATURES: ComparisonFeature[] = [
 function SupportIndicator({ value }: { value: Support | string }) {
   if (value === 'full') {
     return (
-      <span className="inline-flex items-center" aria-label="Fully supported">
+      <span role="img" className="inline-flex items-center" aria-label="Fully supported">
         <CircleCheck className="size-4 text-green-600 dark:text-green-400" />
       </span>
     )
   }
   if (value === 'partial') {
     return (
-      <span className="inline-flex items-center" aria-label="Partial support">
+      <span role="img" className="inline-flex items-center" aria-label="Partial support">
         <CircleMinus className="size-4 text-amber-500 dark:text-amber-400" />
       </span>
     )
   }
   if (value === 'none') {
     return (
-      <span className="inline-flex items-center" aria-label="Not supported">
+      <span role="img" className="inline-flex items-center" aria-label="Not supported">
         <CircleX className="text-muted-foreground/40 size-4" />
       </span>
     )
   }
   // String value (e.g. "3+", "shadcn registry")
-  return <span className="text-muted-foreground text-xs">{value}</span>
+  return <span className="text-foreground/70 text-xs">{value}</span>
 }
 
 // ---------------------------------------------------------------------------
