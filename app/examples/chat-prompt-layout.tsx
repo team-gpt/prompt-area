@@ -135,11 +135,14 @@ import { ArrowUp } from 'lucide-react'
 import { PromptArea } from '@/registry/new-york/blocks/prompt-area/prompt-area'
 import { ActionBar } from '@/registry/new-york/blocks/action-bar/action-bar'
 import { ChatPromptLayout } from '@/registry/new-york/blocks/chat-prompt-layout/chat-prompt-layout'
+import { segmentsToPlainText } from '@/registry/new-york/blocks/prompt-area/prompt-area-engine'
 import type { Segment, PromptAreaHandle } from '@/registry/new-york/blocks/prompt-area/types'
+
+type Message = { id: number; role: 'user' | 'assistant'; content: string }
 
 function ChatPromptLayoutExample() {
   const [segments, setSegments] = useState<Segment[]>([])
-  const [messages, setMessages] = useState<Message[]>(initialMessages)
+  const [messages, setMessages] = useState<Message[]>([])
   const promptRef = useRef<PromptAreaHandle>(null)
 
   const isEmpty = segments.length === 0 ||
@@ -147,10 +150,11 @@ function ChatPromptLayoutExample() {
 
   const handleSubmit = useCallback(() => {
     if (isEmpty) return
+    const text = segmentsToPlainText(segments)
     setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: text }])
     promptRef.current?.clear()
     setSegments([])
-  }, [isEmpty])
+  }, [isEmpty, segments])
 
   return (
     <ChatPromptLayout
@@ -179,7 +183,15 @@ function ChatPromptLayoutExample() {
     >
       <div className="mx-auto max-w-3xl space-y-4 p-4">
         {messages.map(msg => (
-          <ChatBubble key={msg.id} role={msg.role}>{msg.content}</ChatBubble>
+          <div key={msg.id} className={\`flex \${msg.role === 'user' ? 'justify-end' : 'justify-start'}\`}>
+            <div className={\`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm \${
+              msg.role === 'user'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground'
+            }\`}>
+              {msg.content}
+            </div>
+          </div>
         ))}
       </div>
     </ChatPromptLayout>

@@ -183,7 +183,7 @@ function StatusBarBelowExample() {
       </div>
       <StatusBar
         className="border-t"
-        left={<span className="text-muted-foreground">+ </> Auto accept edits</span>}
+        left={<span className="text-muted-foreground">{"+ </> Auto accept edits"}</span>}
         right={
           <button className="text-muted-foreground flex items-center gap-1">
             Opus 4.6 <ChevronDown className="size-3" />
@@ -229,7 +229,7 @@ function StatusBarBothExample() {
           minHeight={48}
         />
         <ActionBar
-          left={<span className="text-muted-foreground text-xs">+ </> Auto accept edits</span>}
+          left={<span className="text-muted-foreground text-xs">{"+ </> Auto accept edits"}</span>}
           right={
             <button className="text-muted-foreground flex items-center gap-1 text-xs">
               Opus 4.6 <ChevronDown className="size-3" />
