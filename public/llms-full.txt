@@ -2,6 +2,15 @@
 
 > A production-grade contentEditable rich text input distributed as a shadcn registry component. Built with React and TypeScript. Zero extra dependencies beyond React + shadcn/tailwind.
 
+## Website
+
+- [Homepage](https://prompt-area.com): Interactive demo, feature showcase, live inspector, examples, and comparison matrix
+- [About](https://prompt-area.com/about): Project information, team, and open source details
+- [Contact](https://prompt-area.com/contact): Bug reporting, feature requests, and business inquiries
+- [Press](https://prompt-area.com/press): Media resources, project overview, and press contact
+- [Partners](https://prompt-area.com/partners): Integration partnerships and technology partner opportunities
+- [GitHub](https://github.com/team-gpt/prompt-area): Source code, issue tracker, and contribution guidelines
+
 ## Installation
 
 ```bash
@@ -796,7 +805,7 @@ When you install `prompt-area`, the following modules are available:
 - **Copy/paste**: Preserves chip data on internal paste, auto-resolves triggers on external paste
 - **IME support**: Proper composition handling for CJK input
 - **Auto-grow**: Expands on focus, shrinks on blur with smooth transitions
-- **Animated placeholder**: Pass `string[]` to cycle through placeholder texts
+- **Rotating placeholders**: Pass `string[]` to cycle through placeholder texts with smooth slide animations
 - **Keyboard shortcuts**: Cmd+B bold, Cmd+I italic, Enter submit, Escape dismiss
 - **Imperative API**: `focus()`, `blur()`, `insertChip()`, `getPlainText()`, `clear()`
 - **Convenience hook**: `usePromptAreaState()` eliminates boilerplate
@@ -812,5 +821,9 @@ When you install `prompt-area`, the following modules are available:
 ## Links
 
 - Website: https://prompt-area.com
+- About: https://prompt-area.com/about
+- Contact: https://prompt-area.com/contact
+- Press: https://prompt-area.com/press
+- Partners: https://prompt-area.com/partners
 - GitHub: https://github.com/team-gpt/prompt-area
 - shadcn Registry: https://ui.shadcn.com/docs/registry
