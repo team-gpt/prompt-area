@@ -295,19 +295,13 @@ function ActiveIndicator({ activeId, itemRefs, navRef }: ActiveIndicatorProps) {
     setStyle({ opacity: 1, top })
   }, [activeId, itemRefs, navRef])
 
-  // Re-measure when activeId changes
+  // Re-measure when activeId changes, and again after collapsible expansion
+  // animation completes (200ms CSS grid transition in CollapsibleNavItem)
   useEffect(() => {
     measure()
+    const timer = setTimeout(measure, 250)
+    return () => clearTimeout(timer)
   }, [measure])
-
-  // Re-measure when nav layout changes (e.g. collapsible sections expanding)
-  useEffect(() => {
-    const nav = navRef.current
-    if (!nav) return
-    const ro = new ResizeObserver(() => measure())
-    ro.observe(nav)
-    return () => ro.disconnect()
-  }, [measure, navRef])
 
   return (
     <div
