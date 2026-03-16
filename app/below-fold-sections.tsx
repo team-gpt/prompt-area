@@ -370,20 +370,6 @@ export default function BelowFoldSections() {
         </div>
       </div>
 
-      {/* Inspector */}
-      <div id="inspector" className="flex scroll-mt-16 flex-col gap-3">
-        <SectionHeading id="inspector" as="h2">
-          Inspector
-        </SectionHeading>
-        <p className="text-muted-foreground text-sm">
-          Inspect every event, segment, and API method in real time. Toggle <code>disabled</code>,{' '}
-          <code>markdown</code>, and <code>autoGrow</code>. All 4 trigger types (<code>/</code>,{' '}
-          <code>@</code>, <code>#</code>, <code>!</code>) and every callback log to the event panel.
-          Imperative handle methods are wired to buttons below.
-        </p>
-        <InspectorSection />
-      </div>
-
       {/* Dark Theme */}
       <div className="flex flex-col gap-6">
         <div id="dark-theme" className="flex scroll-mt-16 flex-col gap-3">
@@ -403,6 +389,20 @@ export default function BelowFoldSections() {
           </p>
           <DarkThemePreview />
         </div>
+      </div>
+
+      {/* Inspector */}
+      <div id="inspector" className="flex scroll-mt-16 flex-col gap-3">
+        <SectionHeading id="inspector" as="h2">
+          Inspector
+        </SectionHeading>
+        <p className="text-muted-foreground text-sm">
+          Inspect every event, segment, and API method in real time. Toggle <code>disabled</code>,{' '}
+          <code>markdown</code>, and <code>autoGrow</code>. All 4 trigger types (<code>/</code>,{' '}
+          <code>@</code>, <code>#</code>, <code>!</code>) and every callback log to the event panel.
+          Imperative handle methods are wired to buttons below.
+        </p>
+        <InspectorSection />
       </div>
 
       {/* Comparison */}

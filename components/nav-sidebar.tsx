@@ -70,12 +70,12 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Chat Prompt Layout',
     children: [{ id: 'chat-prompt-layout-example', label: 'Chat Layout' }],
   },
-  { id: 'inspector', label: 'Inspector' },
   {
     id: 'dark-theme',
     label: 'Dark Theme',
     children: [{ id: 'dark-theme-preview', label: 'Preview' }],
   },
+  { id: 'inspector', label: 'Inspector' },
   { id: 'comparison', label: 'Comparison' },
 ]
 
