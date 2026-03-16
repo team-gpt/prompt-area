@@ -395,10 +395,10 @@ function NavSidebar() {
         'lg:translate-x-0',
         !isOpen && '-translate-x-full',
       )}>
-      <div className="flex items-center gap-2.5 px-4 pt-16 pb-2 lg:pt-6">
+      <a href="/" className="flex items-center gap-2.5 px-4 pt-16 pb-2 lg:pt-6 transition-opacity hover:opacity-70">
         <TextCursorInput className="text-foreground size-5 shrink-0" />
         <span className="text-foreground text-sm font-semibold tracking-tight">Prompt Area</span>
-      </div>
+      </a>
 
       <nav
         ref={navRef}
