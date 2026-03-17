@@ -101,7 +101,9 @@ export const RichText: React.FC = () => {
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={65}>
-          <OutroScene />
+          <SceneWrap durationInFrames={65} noExit>
+            <OutroScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
       </TransitionSeries>
     </AbsoluteFill>

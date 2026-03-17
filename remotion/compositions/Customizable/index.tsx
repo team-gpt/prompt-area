@@ -99,13 +99,17 @@ export const Customizable: React.FC = () => {
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={95}>
-          <LayoutsScene />
+          <SceneWrap durationInFrames={95}>
+            <LayoutsScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
 
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={60}>
-          <OutroScene />
+          <SceneWrap durationInFrames={60} noExit>
+            <OutroScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
       </TransitionSeries>
     </AbsoluteFill>

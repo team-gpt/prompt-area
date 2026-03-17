@@ -85,19 +85,25 @@ export const DevExperience: React.FC = () => {
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={125}>
-          <ComposableScene />
+          <SceneWrap durationInFrames={125}>
+            <ComposableScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
 
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={60}>
-          <SegmentsScene />
+          <SceneWrap durationInFrames={60}>
+            <SegmentsScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
 
         {transition}
 
         <TransitionSeries.Sequence durationInFrames={60}>
-          <OutroScene />
+          <SceneWrap durationInFrames={60} noExit>
+            <OutroScene />
+          </SceneWrap>
         </TransitionSeries.Sequence>
       </TransitionSeries>
     </AbsoluteFill>
