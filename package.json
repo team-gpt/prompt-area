@@ -17,11 +17,11 @@
     "prepare": "lefthook install",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "remotion:studio": "remotion studio remotion/index.ts",
+    "remotion:studio": "remotion studio remotion/index.ts --public-dir remotion/public",
     "remotion:render:all": "pnpm remotion:render:v1 && pnpm remotion:render:v2 && pnpm remotion:render:v3",
-    "remotion:render:v1": "remotion render remotion/index.ts SmartInput out/smart-input.mp4",
-    "remotion:render:v2": "remotion render remotion/index.ts RichText out/rich-text.mp4",
-    "remotion:render:v3": "remotion render remotion/index.ts DevExperience out/dev-experience.mp4"
+    "remotion:render:v1": "remotion render remotion/index.ts SmartInput out/smart-input.mp4 --public-dir remotion/public",
+    "remotion:render:v2": "remotion render remotion/index.ts RichText out/rich-text.mp4 --public-dir remotion/public",
+    "remotion:render:v3": "remotion render remotion/index.ts DevExperience out/dev-experience.mp4 --public-dir remotion/public"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
