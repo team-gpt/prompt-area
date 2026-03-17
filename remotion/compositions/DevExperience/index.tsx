@@ -1,7 +1,10 @@
 import React from 'react'
-import { AbsoluteFill, Sequence } from 'remotion'
+import { AbsoluteFill } from 'remotion'
+import { TransitionSeries, springTiming } from '@remotion/transitions'
+import { fade } from '@remotion/transitions/fade'
 import { useFonts } from '../../design/fonts'
 import { Background } from '../../design/Background'
+import { springs } from '../../design/animation'
 import { IntroScene } from './scenes/IntroScene'
 import { InstallScene } from './scenes/InstallScene'
 import { DarkModeScene } from './scenes/DarkModeScene'
@@ -9,10 +12,24 @@ import { ComposableScene } from './scenes/ComposableScene'
 import { SegmentsScene } from './scenes/SegmentsScene'
 import { OutroScene } from './scenes/OutroScene'
 
+const TRANSITION_DURATION = 15
+
+const transition = (
+  <TransitionSeries.Transition
+    presentation={fade()}
+    timing={springTiming({
+      config: springs.sceneTransition,
+      durationInFrames: TRANSITION_DURATION,
+    })}
+  />
+)
+
 /**
  * Video 3: "Developer Experience"
  * Shows shadcn install, dark mode, composable layouts, segments API.
  * 1080x1080, 30fps, 450 frames (15 seconds)
+ *
+ * Timing: 50+115+115+125+60+60 = 525 scene frames - 5×15 = 75 overlap = 450 total
  */
 export const DevExperience: React.FC = () => {
   useFonts()
@@ -21,35 +38,41 @@ export const DevExperience: React.FC = () => {
     <AbsoluteFill>
       <Background animated />
 
-      {/* Logo intro: frames 0-50 */}
-      <Sequence from={0} durationInFrames={50} layout="none">
-        <IntroScene />
-      </Sequence>
+      <TransitionSeries>
+        <TransitionSeries.Sequence durationInFrames={50}>
+          <IntroScene />
+        </TransitionSeries.Sequence>
 
-      {/* Install command: frames 45-150 */}
-      <Sequence from={45} durationInFrames={105} layout="none">
-        <InstallScene />
-      </Sequence>
+        {transition}
 
-      {/* Dark mode toggle: frames 145-255 */}
-      <Sequence from={145} durationInFrames={110} layout="none">
-        <DarkModeScene />
-      </Sequence>
+        <TransitionSeries.Sequence durationInFrames={115}>
+          <InstallScene />
+        </TransitionSeries.Sequence>
 
-      {/* Composable UI: frames 250-365 */}
-      <Sequence from={250} durationInFrames={115} layout="none">
-        <ComposableScene />
-      </Sequence>
+        {transition}
 
-      {/* Segments API: frames 360-410 */}
-      <Sequence from={360} durationInFrames={50} layout="none">
-        <SegmentsScene />
-      </Sequence>
+        <TransitionSeries.Sequence durationInFrames={115}>
+          <DarkModeScene />
+        </TransitionSeries.Sequence>
 
-      {/* Outro: frames 405-450 */}
-      <Sequence from={405} durationInFrames={45} layout="none">
-        <OutroScene />
-      </Sequence>
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={125}>
+          <ComposableScene />
+        </TransitionSeries.Sequence>
+
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={60}>
+          <SegmentsScene />
+        </TransitionSeries.Sequence>
+
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={60}>
+          <OutroScene />
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
     </AbsoluteFill>
   )
 }

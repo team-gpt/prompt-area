@@ -1,7 +1,10 @@
 import React from 'react'
-import { AbsoluteFill, Sequence } from 'remotion'
+import { AbsoluteFill } from 'remotion'
+import { TransitionSeries, springTiming } from '@remotion/transitions'
+import { fade } from '@remotion/transitions/fade'
 import { useFonts } from '../../design/fonts'
 import { Background } from '../../design/Background'
+import { springs } from '../../design/animation'
 import { IntroScene } from './scenes/IntroScene'
 import { MarkdownScene } from './scenes/MarkdownScene'
 import { ListScene } from './scenes/ListScene'
@@ -9,10 +12,24 @@ import { ImagePasteScene } from './scenes/ImagePasteScene'
 import { FileAttachScene } from './scenes/FileAttachScene'
 import { OutroScene } from './scenes/OutroScene'
 
+const TRANSITION_DURATION = 15
+
+const transition = (
+  <TransitionSeries.Transition
+    presentation={fade()}
+    timing={springTiming({
+      config: springs.sceneTransition,
+      durationInFrames: TRANSITION_DURATION,
+    })}
+  />
+)
+
 /**
  * Video 2: "Rich Text & Attachments"
  * Shows inline markdown, lists, image paste, file attachments.
  * 1080x1080, 30fps, 450 frames (15 seconds)
+ *
+ * Timing: 50+115+110+100+85+65 = 525 scene frames - 5×15 = 75 overlap = 450 total
  */
 export const RichText: React.FC = () => {
   useFonts()
@@ -21,35 +38,41 @@ export const RichText: React.FC = () => {
     <AbsoluteFill>
       <Background animated />
 
-      {/* Logo intro: frames 0-50 */}
-      <Sequence from={0} durationInFrames={50} layout="none">
-        <IntroScene />
-      </Sequence>
+      <TransitionSeries>
+        <TransitionSeries.Sequence durationInFrames={50}>
+          <IntroScene />
+        </TransitionSeries.Sequence>
 
-      {/* Markdown typing: frames 45-145 */}
-      <Sequence from={45} durationInFrames={100} layout="none">
-        <MarkdownScene />
-      </Sequence>
+        {transition}
 
-      {/* List auto-format: frames 140-240 */}
-      <Sequence from={140} durationInFrames={100} layout="none">
-        <ListScene />
-      </Sequence>
+        <TransitionSeries.Sequence durationInFrames={115}>
+          <MarkdownScene />
+        </TransitionSeries.Sequence>
 
-      {/* Image paste: frames 235-330 */}
-      <Sequence from={235} durationInFrames={95} layout="none">
-        <ImagePasteScene />
-      </Sequence>
+        {transition}
 
-      {/* File attachment: frames 325-405 */}
-      <Sequence from={325} durationInFrames={80} layout="none">
-        <FileAttachScene />
-      </Sequence>
+        <TransitionSeries.Sequence durationInFrames={110}>
+          <ListScene />
+        </TransitionSeries.Sequence>
 
-      {/* Outro: frames 400-450 */}
-      <Sequence from={400} durationInFrames={50} layout="none">
-        <OutroScene />
-      </Sequence>
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={100}>
+          <ImagePasteScene />
+        </TransitionSeries.Sequence>
+
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={85}>
+          <FileAttachScene />
+        </TransitionSeries.Sequence>
+
+        {transition}
+
+        <TransitionSeries.Sequence durationInFrames={65}>
+          <OutroScene />
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
     </AbsoluteFill>
   )
 }
