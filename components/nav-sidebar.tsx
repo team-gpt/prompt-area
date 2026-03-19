@@ -60,6 +60,7 @@ const NAV_ITEMS: NavItem[] = [
       { id: 'status-bar-both', label: 'Combined' },
     ],
   },
+  { id: 'claude-code-input', label: 'Claude Code–Style' },
   {
     id: 'compact-prompt-area',
     label: 'Compact Prompt Area',
