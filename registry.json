@@ -8,6 +8,7 @@
       "type": "registry:component",
       "title": "Prompt Area",
       "description": "A contentEditable rich text input with trigger-based chips (@mentions, /commands, #tags), inline markdown, undo/redo, and list auto-formatting.",
+      "dependencies": ["@floating-ui/react-dom"],
       "registryDependencies": [],
       "files": [
         {

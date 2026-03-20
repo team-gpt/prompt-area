@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { useFloating, offset, flip, shift, size } from '@floating-ui/react-dom'
 import { cn } from '@/lib/utils'
 import type { TriggerSuggestion } from './types'
 
@@ -34,20 +35,44 @@ export function TriggerPopover({
   const popoverRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<HTMLButtonElement>(null)
 
+  const { refs, floatingStyles } = useFloating({
+    placement: 'bottom-start',
+    strategy: 'fixed',
+    middleware: [
+      offset(4),
+      flip({ padding: 8 }),
+      shift({ padding: 8 }),
+      size({
+        padding: 8,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = `${Math.min(240, availableHeight)}px`
+        },
+      }),
+    ],
+  })
+
+  // Merge local popoverRef with floating-ui's ref setter
+  const setFloatingRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      popoverRef.current = node
+      refs.setFloating(node)
+    },
+    [refs],
+  )
+
+  // Set virtual reference from triggerRect
+  useEffect(() => {
+    if (triggerRect) {
+      refs.setReference({
+        getBoundingClientRect: () => triggerRect,
+      })
+    }
+  }, [triggerRect, refs])
+
   // Scroll selected item into view
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: 'nearest' })
   }, [selectedIndex])
-
-  // Track measured popover height for flip logic
-  const [measuredHeight, setMeasuredHeight] = useState<number>(0)
-
-  // Measure popover height after render so flip decision uses real size
-  useEffect(() => {
-    if (popoverRef.current) {
-      setMeasuredHeight(popoverRef.current.offsetHeight)
-    }
-  })
 
   // Click outside to dismiss
   useEffect(() => {
@@ -75,32 +100,17 @@ export function TriggerPopover({
   if (!triggerRect) return null
   if (suggestions.length === 0 && !loading && !error && !emptyMessage) return null
 
-  // Position the popover relative to the trigger character, clamped to viewport.
-  // Flip above when there isn't enough room below.
   const popoverMaxWidth = Math.min(320, window.innerWidth - 16)
-  const left = Math.min(triggerRect.left, window.innerWidth - popoverMaxWidth - 8)
-  const estimatedHeight = measuredHeight || 240 // 240 = max-h fallback
-  const spaceBelow = window.innerHeight - triggerRect.bottom - 4
-  const spaceAbove = triggerRect.top - 4
-  const showAbove = spaceBelow < estimatedHeight && spaceAbove > spaceBelow
-  const top = showAbove ? triggerRect.top - 4 - estimatedHeight : triggerRect.bottom + 4
-  const style: React.CSSProperties = {
-    position: 'fixed',
-    left: `${Math.max(8, left)}px`,
-    top: `${Math.max(4, top)}px`,
-    zIndex: 50,
-    maxWidth: `${popoverMaxWidth}px`,
-  }
 
   return (
     <div
-      ref={popoverRef}
+      ref={setFloatingRef}
       className={cn(
         'max-h-[240px] min-w-[200px] overflow-y-auto',
         'bg-popover rounded-xl border p-2 shadow-md',
         'animate-in fade-in-0 zoom-in-95',
       )}
-      style={style}
+      style={{ ...floatingStyles, zIndex: 50, maxWidth: `${popoverMaxWidth}px` }}
       role="listbox"
       aria-label={`${triggerChar} suggestions`}>
       {loading ? (
