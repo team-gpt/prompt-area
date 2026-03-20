@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { TriggerSuggestion } from './types'
 
@@ -39,6 +39,16 @@ export function TriggerPopover({
     selectedRef.current?.scrollIntoView({ block: 'nearest' })
   }, [selectedIndex])
 
+  // Track measured popover height for flip logic
+  const [measuredHeight, setMeasuredHeight] = useState<number>(0)
+
+  // Measure popover height after render so flip decision uses real size
+  useEffect(() => {
+    if (popoverRef.current) {
+      setMeasuredHeight(popoverRef.current.offsetHeight)
+    }
+  })
+
   // Click outside to dismiss
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -51,16 +61,33 @@ export function TriggerPopover({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [onDismiss])
 
+  // Dismiss on scroll or resize so the popover doesn't drift from its anchor
+  useEffect(() => {
+    const dismiss = () => onDismiss()
+    window.addEventListener('scroll', dismiss, { capture: true })
+    window.addEventListener('resize', dismiss)
+    return () => {
+      window.removeEventListener('scroll', dismiss, { capture: true })
+      window.removeEventListener('resize', dismiss)
+    }
+  }, [onDismiss])
+
   if (!triggerRect) return null
   if (suggestions.length === 0 && !loading && !error && !emptyMessage) return null
 
-  // Position the popover below the trigger character, clamped to viewport
+  // Position the popover relative to the trigger character, clamped to viewport.
+  // Flip above when there isn't enough room below.
   const popoverMaxWidth = Math.min(320, window.innerWidth - 16)
   const left = Math.min(triggerRect.left, window.innerWidth - popoverMaxWidth - 8)
+  const estimatedHeight = measuredHeight || 240 // 240 = max-h fallback
+  const spaceBelow = window.innerHeight - triggerRect.bottom - 4
+  const spaceAbove = triggerRect.top - 4
+  const showAbove = spaceBelow < estimatedHeight && spaceAbove > spaceBelow
+  const top = showAbove ? triggerRect.top - 4 - estimatedHeight : triggerRect.bottom + 4
   const style: React.CSSProperties = {
     position: 'fixed',
     left: `${Math.max(8, left)}px`,
-    top: `${triggerRect.bottom + 4}px`,
+    top: `${Math.max(4, top)}px`,
     zIndex: 50,
     maxWidth: `${popoverMaxWidth}px`,
   }
