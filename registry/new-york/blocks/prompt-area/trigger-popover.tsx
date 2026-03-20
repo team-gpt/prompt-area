@@ -108,7 +108,7 @@ export function TriggerPopover({
       className={cn(
         'max-h-[240px] min-w-[200px] overflow-y-auto',
         'bg-popover rounded-xl border p-2 shadow-md',
-        'animate-in fade-in-0 zoom-in-95',
+        'animate-in fade-in-0',
       )}
       style={{ ...floatingStyles, zIndex: 50, maxWidth: `${popoverMaxWidth}px` }}
       role="listbox"
