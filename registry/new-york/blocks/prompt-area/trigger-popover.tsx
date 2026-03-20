@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef } from 'react'
-import { useFloating, offset, flip, shift, size } from '@floating-ui/react-dom'
+import { useFloating, offset, flip, shift, size, autoUpdate } from '@floating-ui/react-dom'
 import { cn } from '@/lib/utils'
 import type { TriggerSuggestion } from './types'
 
@@ -14,6 +14,7 @@ type TriggerPopoverProps = {
   onSelect: (suggestion: TriggerSuggestion) => void
   onDismiss: () => void
   triggerRect: DOMRect | null
+  getTriggerRect: (() => DOMRect | null) | null
   triggerChar: string
 }
 
@@ -30,17 +31,29 @@ export function TriggerPopover({
   onSelect,
   onDismiss,
   triggerRect,
+  getTriggerRect,
   triggerChar,
 }: TriggerPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null)
   const selectedRef = useRef<HTMLButtonElement>(null)
+  const getTriggerRectRef = useRef(getTriggerRect)
+  useEffect(() => {
+    getTriggerRectRef.current = getTriggerRect
+  }, [getTriggerRect])
+
+  // Build a virtual reference that re-measures from the live Range on each call,
+  // so the popover tracks the trigger character as the page scrolls.
+  const virtualReference = triggerRect
+    ? {
+        getBoundingClientRect: () => getTriggerRectRef.current?.() ?? triggerRect,
+      }
+    : undefined
 
   const { refs, floatingStyles } = useFloating({
     placement: 'bottom-start',
     strategy: 'fixed',
-    elements: {
-      reference: triggerRect ? { getBoundingClientRect: () => triggerRect } : undefined,
-    },
+    elements: { reference: virtualReference },
+    whileElementsMounted: autoUpdate,
     middleware: [
       offset(4),
       flip({ padding: 8 }),
@@ -78,17 +91,6 @@ export function TriggerPopover({
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onDismiss])
-
-  // Dismiss on scroll or resize so the popover doesn't drift from its anchor
-  useEffect(() => {
-    const dismiss = () => onDismiss()
-    window.addEventListener('scroll', dismiss, { capture: true })
-    window.addEventListener('resize', dismiss)
-    return () => {
-      window.removeEventListener('scroll', dismiss, { capture: true })
-      window.removeEventListener('resize', dismiss)
-    }
   }, [onDismiss])
 
   if (!triggerRect) return null

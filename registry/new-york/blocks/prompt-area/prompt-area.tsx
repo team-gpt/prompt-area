@@ -83,6 +83,7 @@ export function PromptArea({
     dismissTrigger,
     handle,
     triggerRect,
+    getTriggerRect,
     eventHandlers,
   } = usePromptArea({
     value,
@@ -283,7 +284,8 @@ export function PromptArea({
             <div
               className="h-full w-full"
               style={{
-                background: 'linear-gradient(to bottom, transparent, color-mix(in srgb, var(--prompt-area-surface, var(--background)) 80%, transparent), var(--prompt-area-surface, var(--background)))',
+                background:
+                  'linear-gradient(to bottom, transparent, color-mix(in srgb, var(--prompt-area-surface, var(--background)) 80%, transparent), var(--prompt-area-surface, var(--background)))',
               }}
             />
           </div>
@@ -317,6 +319,7 @@ export function PromptArea({
           onSelect={selectSuggestion}
           onDismiss={dismissTrigger}
           triggerRect={triggerRect}
+          getTriggerRect={getTriggerRect}
           triggerChar={activeTrigger.config.char}
         />
       )}

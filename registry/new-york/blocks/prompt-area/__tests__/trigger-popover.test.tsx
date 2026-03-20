@@ -22,6 +22,7 @@ function defaultProps(overrides: Partial<Parameters<typeof TriggerPopover>[0]> =
     onSelect: vi.fn(),
     onDismiss: vi.fn(),
     triggerRect: baseTriggerRect,
+    getTriggerRect: () => baseTriggerRect,
     triggerChar: '@',
     ...overrides,
   }

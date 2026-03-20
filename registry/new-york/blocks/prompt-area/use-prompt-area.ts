@@ -83,6 +83,7 @@ type UsePromptAreaReturn = {
   dismissTrigger: () => void
   handle: PromptAreaHandle
   triggerRect: DOMRect | null
+  getTriggerRect: (() => DOMRect) | null
   eventHandlers: {
     onPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void
     onCopy: (e: React.ClipboardEvent<HTMLDivElement>) => void
@@ -122,6 +123,7 @@ export function usePromptArea({
   const [activeTrigger, setActiveTrigger] = useState<ActiveTrigger | null>(null)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  const triggerRangeRef = useRef<Range | null>(null)
 
   const {
     suggestions,
@@ -301,6 +303,7 @@ export function usePromptArea({
         // re-render). Skip updating triggerRect so we keep the last valid one.
         if (rect.height > 0 || rect.left > 0 || rect.top > 0) {
           setTriggerRect(rect)
+          triggerRangeRef.current = triggerRange
         }
       }
 
@@ -1137,6 +1140,16 @@ export function usePromptArea({
     ],
   )
 
+  // Returns a fresh DOMRect by re-measuring the stored trigger Range.
+  // This lets floating-ui reposition on scroll without a stale snapshot.
+  const getTriggerRect = useCallback((): DOMRect | null => {
+    const range = triggerRangeRef.current
+    if (!range) return triggerRect
+    const rect = range.getBoundingClientRect()
+    if (rect.height > 0 || rect.left > 0 || rect.top > 0) return rect
+    return triggerRect
+  }, [triggerRect])
+
   return {
     editorRef,
     activeTrigger,
@@ -1151,6 +1164,7 @@ export function usePromptArea({
     dismissTrigger,
     handle,
     triggerRect,
+    getTriggerRect: activeTrigger ? getTriggerRect : null,
     eventHandlers,
   }
 }
