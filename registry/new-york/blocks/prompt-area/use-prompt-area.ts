@@ -83,7 +83,7 @@ type UsePromptAreaReturn = {
   dismissTrigger: () => void
   handle: PromptAreaHandle
   triggerRect: DOMRect | null
-  getTriggerRect: (() => DOMRect) | null
+  getTriggerRect: (() => DOMRect | null) | null
   eventHandlers: {
     onPaste: (e: React.ClipboardEvent<HTMLDivElement>) => void
     onCopy: (e: React.ClipboardEvent<HTMLDivElement>) => void
