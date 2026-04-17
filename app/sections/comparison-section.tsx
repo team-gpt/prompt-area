@@ -350,7 +350,7 @@ export function ComparisonSection() {
                   'bg-primary/5 border-primary/20',
                 )}>
                 <a
-                  href="https://github.com/team-gpt/prompt-area"
+                  href="https://github.com/just-marketing/prompt-area"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="decoration-muted-foreground/30 hover:decoration-foreground/50 text-xs font-semibold underline underline-offset-2">

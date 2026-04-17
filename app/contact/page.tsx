@@ -31,7 +31,7 @@ export default function ContactPage() {
         <p className="text-muted-foreground">
           The best way to report a bug or request a feature is through{' '}
           <a
-            href="https://github.com/team-gpt/prompt-area/issues"
+            href="https://github.com/just-marketing/prompt-area/issues"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4">
