@@ -66,7 +66,7 @@ export default function PartnersPage() {
           </a>{' '}
           or open a discussion on{' '}
           <a
-            href="https://github.com/team-gpt/prompt-area"
+            href="https://github.com/just-marketing/prompt-area"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4">

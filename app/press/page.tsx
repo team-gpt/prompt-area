@@ -80,7 +80,7 @@ export default function PressPage() {
         <ul className="text-muted-foreground list-inside list-disc space-y-1">
           <li>
             <a
-              href="https://github.com/team-gpt/prompt-area"
+              href="https://github.com/just-marketing/prompt-area"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium underline underline-offset-4">

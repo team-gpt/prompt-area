@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "prompt-area",
-  "homepage": "https://github.com/team-gpt/prompt-area",
+  "homepage": "https://github.com/just-marketing/prompt-area",
   "items": [
     {
       "name": "prompt-area",

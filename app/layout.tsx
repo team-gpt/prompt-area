@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     'react textarea tags',
     'prompt area',
   ],
-  authors: [{ name: 'Juma.ai', url: 'https://github.com/team-gpt' }],
+  authors: [{ name: 'Juma.ai', url: 'https://github.com/just-marketing' }],
   creator: 'Juma.ai',
   openGraph: {
     type: 'website',
@@ -117,7 +117,7 @@ export default function RootLayout({
                     'The best React textarea component for AI chat interfaces. A production-grade contentEditable rich text input with @mentions, /commands, #tags, inline markdown, file attachments, and companion layout components. Zero extra dependencies.',
                   url: SITE_URL,
                   downloadUrl: `${SITE_URL}/r/prompt-area.json`,
-                  codeRepository: 'https://github.com/team-gpt/prompt-area',
+                  codeRepository: 'https://github.com/just-marketing/prompt-area',
                   programmingLanguage: ['TypeScript', 'React'],
                   runtimePlatform: 'Next.js',
                   license: 'https://opensource.org/licenses/MIT',
@@ -138,7 +138,7 @@ export default function RootLayout({
                     '@type': 'Organization',
                     name: 'Juma.ai',
                     url: 'https://juma.ai',
-                    sameAs: ['https://github.com/team-gpt'],
+                    sameAs: ['https://github.com/just-marketing'],
                   },
                   offers: {
                     '@type': 'Offer',
@@ -150,7 +150,7 @@ export default function RootLayout({
                   '@type': 'Organization',
                   name: 'Juma.ai',
                   url: 'https://juma.ai',
-                  sameAs: ['https://github.com/team-gpt'],
+                  sameAs: ['https://github.com/just-marketing'],
                   description:
                     'An AI workspace for marketing teams. Formerly known as Team-GPT. Creators of the Prompt Area open-source component.',
                 },

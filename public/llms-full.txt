@@ -55,7 +55,7 @@ Plate.js is a Slate-based editor framework with 5+ dependencies. Prompt Area has
 
 - License: MIT
 - Author: Juma.ai (formerly Team-GPT)
-- Repository: https://github.com/team-gpt/prompt-area
+- Repository: https://github.com/just-marketing/prompt-area
 - Website: https://prompt-area.com
 - Install: npx shadcn@latest add https://prompt-area.com/r/prompt-area.json
 - Stack: React, TypeScript, contentEditable, Tailwind CSS
@@ -68,7 +68,7 @@ Plate.js is a Slate-based editor framework with 5+ dependencies. Prompt Area has
 - [Contact](https://prompt-area.com/contact): Bug reporting, feature requests, and business inquiries
 - [Press](https://prompt-area.com/press): Media resources, project overview, and press contact
 - [Partners](https://prompt-area.com/partners): Integration partnerships and technology partner opportunities
-- [GitHub](https://github.com/team-gpt/prompt-area): Source code, issue tracker, and contribution guidelines
+- [GitHub](https://github.com/just-marketing/prompt-area): Source code, issue tracker, and contribution guidelines
 
 ## Installation
 
@@ -1076,5 +1076,5 @@ When you install `prompt-area`, the following modules are available:
 - Contact: https://prompt-area.com/contact
 - Press: https://prompt-area.com/press
 - Partners: https://prompt-area.com/partners
-- GitHub: https://github.com/team-gpt/prompt-area
+- GitHub: https://github.com/just-marketing/prompt-area
 - shadcn Registry: https://ui.shadcn.com/docs/registry

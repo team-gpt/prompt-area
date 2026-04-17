@@ -45,7 +45,7 @@ export default function HomeContent() {
             Quick Start
           </a>
           <a
-            href="https://github.com/team-gpt/prompt-area"
+            href="https://github.com/just-marketing/prompt-area"
             target="_blank"
             rel="noopener noreferrer"
             className="border-input hover:bg-accent rounded-md border px-4 py-2 text-sm font-medium transition-colors">

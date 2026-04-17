@@ -447,7 +447,7 @@ function NavSidebar() {
 
       <div className="border-sidebar-border flex flex-col gap-2 border-t px-4 py-3">
         <a
-          href="https://github.com/team-gpt/prompt-area"
+          href="https://github.com/just-marketing/prompt-area"
           target="_blank"
           rel="noopener noreferrer"
           className={cn(

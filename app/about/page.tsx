@@ -81,7 +81,7 @@ export default function AboutPage() {
           Prompt Area is released under the MIT license. Contributions, bug reports, and feature
           requests are welcome on{' '}
           <a
-            href="https://github.com/team-gpt/prompt-area"
+            href="https://github.com/just-marketing/prompt-area"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4">
@@ -89,7 +89,7 @@ export default function AboutPage() {
           </a>
           . See the{' '}
           <a
-            href="https://github.com/team-gpt/prompt-area/blob/main/CONTRIBUTING.md"
+            href="https://github.com/just-marketing/prompt-area/blob/main/CONTRIBUTING.md"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4">

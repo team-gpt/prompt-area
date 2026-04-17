@@ -58,7 +58,7 @@ Plate.js is a Slate-based editor framework with 5+ dependencies. Prompt Area has
 - [Contact](https://prompt-area.com/contact): Bug reporting, feature requests, and business inquiries
 - [Press](https://prompt-area.com/press): Media resources, project overview, and press contact
 - [Partners](https://prompt-area.com/partners): Integration partnerships and technology partner opportunities
-- [GitHub Repository](https://github.com/team-gpt/prompt-area): Source code, issue tracker, and contribution guidelines for the prompt-area component
+- [GitHub Repository](https://github.com/just-marketing/prompt-area): Source code, issue tracker, and contribution guidelines for the prompt-area component
 - [shadcn Registry](https://ui.shadcn.com/docs/registry): Learn how shadcn registry distribution works for installing prompt-area into any Next.js or React project
 
 ## Installation
