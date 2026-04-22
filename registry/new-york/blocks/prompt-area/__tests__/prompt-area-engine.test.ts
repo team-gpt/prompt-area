@@ -7,6 +7,7 @@ import {
   resolveChip,
   removeChipAtIndex,
   revertChipAtIndex,
+  resolveTriggersInSegments,
   replaceTextRange,
   isValidTriggerPosition,
   parseInlineMarkdown,
@@ -22,7 +23,6 @@ import {
   removeListPrefix,
   normalizeListPrefixes,
 } from '../prompt-area-list-ops'
-import { resolveTriggersInSegments } from '../prompt-area-paste-resolution'
 
 // ---------------------------------------------------------------------------
 // Test trigger configs

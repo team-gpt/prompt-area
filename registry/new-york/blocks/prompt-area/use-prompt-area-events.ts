@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 import type { Segment, ChipSegment, TriggerConfig } from './types'
-import { resolveTriggersInSegments } from './prompt-area-paste-resolution'
+import { resolveTriggersInSegments } from './prompt-area-engine'
 import { normalizeEditorDOM, safeJsonStringify, getSelectionRange } from './dom-helpers'
 import {
   serializeFragmentToPlainText,
