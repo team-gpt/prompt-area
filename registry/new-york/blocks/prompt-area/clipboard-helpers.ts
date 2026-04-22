@@ -16,6 +16,8 @@ import {
   isChipElement,
   isHTMLElement,
 } from './dom-helpers'
+import { mergeAdjacentTextSegments } from './prompt-area-engine'
+import { getTextLengthInRange } from './cursor-helpers'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -130,122 +132,62 @@ export function parseSegmentsFromClipboard(json: string): Segment[] | null {
 
 /**
  * Inserts pasted segments at the current cursor position within existing segments.
- * Splits the text segment at the cursor to insert the pasted content.
+ * Splits any text segment that straddles the cursor so the pasted content lands
+ * exactly at the cursor and nothing before or after is lost.
  */
 export function insertSegmentsAtCursor(
   currentSegments: Segment[],
   pastedSegments: Segment[],
   editor: HTMLElement,
 ): Segment[] {
-  // Get cursor offset in the editor
   const range = getSelectionRange()
   if (!range) return [...currentSegments, ...pastedSegments]
 
   const preRange = document.createRange()
   preRange.selectNodeContents(editor)
   preRange.setEnd(range.startContainer, range.startOffset)
+  const cursorOffset = getTextLengthInRange(preRange)
 
-  // Calculate character offset by walking the pre-range fragment
-  let cursorOffset = 0
-  const fragment = preRange.cloneContents()
-  const walk = (node: Node): void => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      cursorOffset += (node.textContent ?? '').length
-    } else if (isChipElement(node)) {
-      const trigger = getChipTrigger(node) ?? ''
-      const display = getChipDisplay(node) ?? ''
-      cursorOffset += trigger.length + display.length
-    } else if (isHTMLElement(node) && node.tagName === 'BR') {
-      cursorOffset += 1
-    } else {
-      node.childNodes.forEach(walk)
-    }
-  }
-  fragment.childNodes.forEach(walk)
-
-  // Split current segments at cursor offset and insert pasted segments
   const result: Segment[] = []
   let offset = 0
+  let inserted = false
+
+  const insertOnce = (): void => {
+    if (!inserted) {
+      result.push(...pastedSegments)
+      inserted = true
+    }
+  }
 
   for (const seg of currentSegments) {
     if (seg.type === 'chip') {
       const chipLen = seg.trigger.length + seg.displayText.length
-      if (offset + chipLen <= cursorOffset) {
-        result.push(seg)
-      } else if (offset >= cursorOffset) {
-        // Will be added after pasted segments
-        break
-      }
+      if (offset >= cursorOffset) insertOnce()
+      result.push(seg)
       offset += chipLen
-    } else {
-      if (offset + seg.text.length <= cursorOffset) {
-        result.push(seg)
-        offset += seg.text.length
-      } else if (offset >= cursorOffset) {
-        break
-      } else {
-        // Split this text segment at cursor
-        const splitAt = cursorOffset - offset
-        const before = seg.text.slice(0, splitAt)
-        if (before) {
-          result.push({ type: 'text', text: before })
-        }
-        offset += seg.text.length
-        break
-      }
+      continue
     }
+
+    const segEnd = offset + seg.text.length
+    if (segEnd <= cursorOffset) {
+      // Entirely before the cursor
+      result.push(seg)
+    } else if (offset >= cursorOffset) {
+      // Entirely after the cursor
+      insertOnce()
+      result.push(seg)
+    } else {
+      // Cursor falls inside this text segment — split it.
+      const splitAt = cursorOffset - offset
+      const before = seg.text.slice(0, splitAt)
+      const after = seg.text.slice(splitAt)
+      if (before) result.push({ type: 'text', text: before })
+      insertOnce()
+      if (after) result.push({ type: 'text', text: after })
+    }
+    offset = segEnd
   }
 
-  // Insert pasted segments
-  result.push(...pastedSegments)
-
-  // Add remaining segments after cursor
-  let pastCursor = false
-  let remaining = 0
-  for (const seg of currentSegments) {
-    if (seg.type === 'chip') {
-      const chipLen = seg.trigger.length + seg.displayText.length
-      if (remaining + chipLen > cursorOffset) {
-        if (pastCursor) {
-          result.push(seg)
-        } else {
-          pastCursor = true
-        }
-      }
-      remaining += chipLen
-    } else {
-      if (remaining >= cursorOffset) {
-        if (pastCursor) {
-          result.push(seg)
-        } else {
-          // This text segment was split — add the remainder
-          const splitAt = cursorOffset - remaining
-          if (splitAt < 0) {
-            result.push(seg)
-          } else {
-            const after = seg.text.slice(cursorOffset - remaining)
-            if (after) {
-              result.push({ type: 'text', text: after })
-            }
-          }
-          pastCursor = true
-        }
-      }
-      remaining += seg.text.length
-    }
-  }
-
-  // Merge adjacent text segments
-  const merged: Segment[] = []
-  for (const seg of result) {
-    if (seg.type === 'text' && seg.text === '') continue
-    const last = merged[merged.length - 1]
-    if (seg.type === 'text' && last?.type === 'text') {
-      merged[merged.length - 1] = { type: 'text', text: last.text + seg.text }
-    } else {
-      merged.push(seg)
-    }
-  }
-
-  return merged
+  insertOnce()
+  return mergeAdjacentTextSegments(result)
 }

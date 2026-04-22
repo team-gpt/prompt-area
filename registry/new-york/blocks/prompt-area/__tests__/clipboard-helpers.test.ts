@@ -278,18 +278,25 @@ describe('insertSegmentsAtCursor', () => {
     ])
   })
 
+  it('inserts pasted segments at the cursor offset within a single text segment', () => {
+    const editor = makeEditor()
+    const text = document.createTextNode('hello world')
+    editor.appendChild(text)
+    placeCursor(text, 5)
+
+    const current: Segment[] = [{ type: 'text', text: 'hello world' }]
+    const pasted: Segment[] = [{ type: 'text', text: ' NEW' }]
+    const result = insertSegmentsAtCursor(current, pasted, editor)
+    expect(result).toEqual([{ type: 'text', text: 'hello NEW world' }])
+  })
+
   it('inserts pasted segments at a boundary between two text segments', () => {
-    // KNOWN LIMITATION: the helper currently loses the tail of a text segment
-    // when the cursor splits it mid-segment (single text node, cursor in the
-    // middle). Cover the boundary case — where the current segments are
-    // already split at or before the cursor — which is the path the paste
-    // handler exercises after readSegmentsFromDOM normalization.
     const editor = makeEditor()
     const first = document.createTextNode('hello')
     const second = document.createTextNode(' world')
     editor.appendChild(first)
     editor.appendChild(second)
-    placeCursor(second, 0) // exactly at the boundary, offset 5 in plain text
+    placeCursor(second, 0)
 
     const current: Segment[] = [
       { type: 'text', text: 'hello' },
@@ -297,7 +304,6 @@ describe('insertSegmentsAtCursor', () => {
     ]
     const pasted: Segment[] = [{ type: 'text', text: ' NEW' }]
     const result = insertSegmentsAtCursor(current, pasted, editor)
-    // Adjacent text segments merge in the helper's final pass.
     expect(result).toEqual([{ type: 'text', text: 'hello NEW world' }])
   })
 
