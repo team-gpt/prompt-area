@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -74,24 +74,41 @@ const THEME_OPTIONS: { value: Theme; icon: typeof Sun; label: string }[] = [
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme()
+  // The server can't know the user's OS preference, so it can't decide which
+  // button is "active" when theme === 'system'. Render everything as inactive
+  // on the server and on the first client render, then highlight the active
+  // button after mount — this keeps SSR output identical to client pre-hydration.
+  // `mounted` is deliberately flipped in an effect so the first client render
+  // matches the server HTML (all buttons inactive); the active button lights up
+  // after hydration. Using useState+useEffect here — not useSyncExternalStore —
+  // because we specifically want the pre- and post-hydration renders to differ.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
 
   return (
     <div className={cn('flex items-center gap-0.5', className)}>
-      {THEME_OPTIONS.map(({ value, icon: Icon, label }) => (
-        <button
-          key={value}
-          onClick={() => setTheme(value)}
-          aria-label={label}
-          title={label}
-          className={cn(
-            'rounded-md p-2 transition-colors',
-            theme === value || (theme === 'system' && value === getSystemTheme())
-              ? 'text-foreground bg-accent'
-              : 'text-muted-foreground hover:text-foreground',
-          )}>
-          <Icon className="size-4" />
-        </button>
-      ))}
+      {THEME_OPTIONS.map(({ value, icon: Icon, label }) => {
+        const isActive =
+          mounted && (theme === value || (theme === 'system' && value === getSystemTheme()))
+        return (
+          <button
+            key={value}
+            onClick={() => setTheme(value)}
+            aria-label={label}
+            title={label}
+            className={cn(
+              'rounded-md p-2 transition-colors',
+              isActive
+                ? 'text-foreground bg-accent'
+                : 'text-muted-foreground hover:text-foreground',
+            )}>
+            <Icon className="size-4" />
+          </button>
+        )
+      })}
     </div>
   )
 }
