@@ -278,10 +278,6 @@ export function revertChipAtIndex(
  * Trigger patterns must appear at word boundaries: start of text, after
  * whitespace, or after a newline. This avoids false positives like email
  * addresses (user@example.com).
- *
- * @param segments - The segments to scan
- * @param triggers - Available trigger configurations
- * @returns New segments with matched trigger patterns resolved to chips
  */
 export function resolveTriggersInSegments(
   segments: Segment[],
@@ -290,9 +286,7 @@ export function resolveTriggersInSegments(
   const autoResolveTriggers = triggers.filter((t) => t.resolveOnSpace)
   if (autoResolveTriggers.length === 0) return segments
 
-  // Build a set of trigger chars for fast lookup
   const triggerChars = new Set(autoResolveTriggers.map((t) => t.char))
-
   const result: Segment[] = []
 
   for (const seg of segments) {
@@ -327,14 +321,12 @@ function splitTextByTriggerPatterns(
     const char = text[i]
 
     if (triggerChars.has(char)) {
-      // Check if this trigger char is at a valid position
       const isAtBoundary =
         i === 0 || text[i - 1] === ' ' || text[i - 1] === '\n' || text[i - 1] === '\t'
 
       if (isAtBoundary) {
         const trigger = triggers.find((t) => t.char === char)
         if (trigger && isValidTriggerPosition(text, i, trigger.position)) {
-          // Scan forward for the word (non-whitespace characters)
           let end = i + 1
           while (
             end < text.length &&
@@ -347,13 +339,15 @@ function splitTextByTriggerPatterns(
 
           const query = text.slice(i + 1, end)
           if (query.length > 0) {
-            // Create a chip segment
-            const displayText = trigger.onSelect?.({ value: query, label: query }) ?? query
+            // Treat both undefined and '' from onSelect as "no custom label"
+            // and fall back to the query — an empty displayText would render
+            // a blank chip.
+            const displayText = trigger.onSelect?.({ value: query, label: query }) || query
             segments.push({
               type: 'chip',
               trigger: char,
               value: query,
-              displayText: displayText || query,
+              displayText,
               autoResolved: true,
             })
             i = end
@@ -363,14 +357,13 @@ function splitTextByTriggerPatterns(
       }
     }
 
-    // Not a trigger pattern — accumulate as text
     const start = i
     i++
     while (
       i < text.length &&
       !(
         triggerChars.has(text[i]) &&
-        (i === 0 || text[i - 1] === ' ' || text[i - 1] === '\n' || text[i - 1] === '\t')
+        (text[i - 1] === ' ' || text[i - 1] === '\n' || text[i - 1] === '\t')
       )
     ) {
       i++
@@ -382,7 +375,7 @@ function splitTextByTriggerPatterns(
 }
 
 // ---------------------------------------------------------------------------
-// Text range replacement (used by list functions)
+// Text range replacement
 // ---------------------------------------------------------------------------
 
 /**
@@ -541,232 +534,6 @@ export function toggleMarkdownWrap(
 }
 
 // ---------------------------------------------------------------------------
-// List auto-formatting
-// ---------------------------------------------------------------------------
-
-/**
- * Information about a list line at a given cursor position.
- */
-export type ListContext = {
-  /** Offset in plain text where the line begins */
-  lineStart: number
-  /** The full prefix including indentation (e.g., "  \u2022 ") */
-  prefix: string
-  /** Number of indentation levels (each = 2 spaces) */
-  indent: number
-  /** Type of list */
-  listType: 'bullet' | 'numbered'
-  /** For numbered lists, the number */
-  number?: number
-  /** Offset in plain text where content after the prefix starts */
-  contentStart: number
-}
-
-/**
- * Detects if the cursor is in a list line and returns context about it.
- *
- * @param text - The full plain text content
- * @param cursorPos - The cursor position (character offset from start)
- * @returns List context if the cursor is in a list line, null otherwise
- */
-export function getListContext(text: string, cursorPos: number): ListContext | null {
-  // Find the start of the current line
-  const lineStart = text.lastIndexOf('\n', cursorPos - 1) + 1
-  const lineEnd = text.indexOf('\n', cursorPos)
-  const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd)
-
-  // Match bullet: (spaces)(bullet_char) (space)
-  const bulletMatch = line.match(/^(\s*)([•\-*]) /)
-  if (bulletMatch) {
-    const indentStr = bulletMatch[1]
-    return {
-      lineStart,
-      prefix: bulletMatch[0],
-      indent: Math.floor(indentStr.length / 2),
-      listType: 'bullet',
-      contentStart: lineStart + bulletMatch[0].length,
-    }
-  }
-
-  // Match numbered: (spaces)(digits). (space)
-  const numberMatch = line.match(/^(\s*)(\d+)\. /)
-  if (numberMatch) {
-    const indentStr = numberMatch[1]
-    return {
-      lineStart,
-      prefix: numberMatch[0],
-      indent: Math.floor(indentStr.length / 2),
-      listType: 'numbered',
-      number: parseInt(numberMatch[2], 10),
-      contentStart: lineStart + numberMatch[0].length,
-    }
-  }
-
-  return null
-}
-
-/**
- * Detects if the user just typed a list trigger pattern (e.g., "- " or "* ")
- * and returns the segments with the replacement applied.
- *
- * @param segments - Current segments
- * @param cursorPos - The cursor position after typing
- * @returns New segments with auto-formatted prefix and new cursor offset, or null
- */
-export function autoFormatListPrefix(
-  segments: Segment[],
-  cursorPos: number,
-): { segments: Segment[]; cursorOffset: number } | null {
-  const plainText = segmentsToPlainText(segments)
-  const lineStart = plainText.lastIndexOf('\n', cursorPos - 1) + 1
-  const lineText = plainText.slice(lineStart, cursorPos)
-
-  // Match "- " or "* " (with optional leading spaces) at the end of typed text
-  const match = lineText.match(/^(\s*)[-*] $/)
-  if (!match) return null
-
-  const indent = match[1]
-  const replacement = `${indent}\u2022 `
-  const rangeStart = lineStart
-  const rangeEnd = lineStart + lineText.length
-
-  const newSegments = replaceTextRange(segments, rangeStart, rangeEnd, replacement)
-  return {
-    segments: newSegments,
-    cursorOffset: lineStart + replacement.length,
-  }
-}
-
-/**
- * Handles Enter key in a list line — continues the list or exits.
- *
- * @param segments - Current segments
- * @param cursorPos - The cursor position
- * @returns New segments and cursor offset, or null if not in a list
- */
-export function insertListContinuation(
-  segments: Segment[],
-  cursorPos: number,
-): { segments: Segment[]; cursorOffset: number } | null {
-  const plainText = segmentsToPlainText(segments)
-  const ctx = getListContext(plainText, cursorPos)
-  if (!ctx) return null
-
-  const lineEnd = plainText.indexOf('\n', cursorPos)
-  const lineContent = plainText.slice(ctx.contentStart, lineEnd === -1 ? plainText.length : lineEnd)
-
-  // If the line content (after prefix) is empty, exit list mode
-  if (lineContent.trim() === '') {
-    // Remove the entire prefix (convert list line to empty line)
-    const newSegments = replaceTextRange(
-      segments,
-      ctx.lineStart,
-      ctx.lineStart + ctx.prefix.length,
-      '',
-    )
-    return {
-      segments: newSegments,
-      cursorOffset: ctx.lineStart,
-    }
-  }
-
-  // Build the next line prefix
-  const indent = '  '.repeat(ctx.indent)
-  let nextPrefix: string
-  if (ctx.listType === 'bullet') {
-    nextPrefix = `${indent}\u2022 `
-  } else {
-    const nextNum = (ctx.number ?? 1) + 1
-    nextPrefix = `${indent}${nextNum}. `
-  }
-
-  // Insert newline + next prefix at cursor position
-  const insertion = `\n${nextPrefix}`
-  const newSegments = replaceTextRange(segments, cursorPos, cursorPos, insertion)
-  return {
-    segments: newSegments,
-    cursorOffset: cursorPos + insertion.length,
-  }
-}
-
-/**
- * Indents a list item by one level (adds 2 spaces before the prefix).
- *
- * @param segments - Current segments
- * @param cursorPos - The cursor position
- * @returns New segments and cursor offset, or null if not in a list
- */
-export function indentListItem(
-  segments: Segment[],
-  cursorPos: number,
-): { segments: Segment[]; cursorOffset: number } | null {
-  const plainText = segmentsToPlainText(segments)
-  const ctx = getListContext(plainText, cursorPos)
-  if (!ctx) return null
-
-  // Insert 2 spaces at the line start
-  const newSegments = replaceTextRange(segments, ctx.lineStart, ctx.lineStart, '  ')
-  return {
-    segments: newSegments,
-    cursorOffset: cursorPos + 2,
-  }
-}
-
-/**
- * Outdents a list item by one level (removes 2 spaces from before the prefix).
- *
- * @param segments - Current segments
- * @param cursorPos - The cursor position
- * @returns New segments and cursor offset, or null if not indented
- */
-export function outdentListItem(
-  segments: Segment[],
-  cursorPos: number,
-): { segments: Segment[]; cursorOffset: number } | null {
-  const plainText = segmentsToPlainText(segments)
-  const ctx = getListContext(plainText, cursorPos)
-  if (!ctx || ctx.indent === 0) return null
-
-  // Remove 2 spaces from the line start
-  const newSegments = replaceTextRange(segments, ctx.lineStart, ctx.lineStart + 2, '')
-  return {
-    segments: newSegments,
-    cursorOffset: Math.max(ctx.lineStart, cursorPos - 2),
-  }
-}
-
-/**
- * Removes the list prefix from the current line (e.g., on Backspace).
- *
- * @param segments - Current segments
- * @param cursorPos - The cursor position
- * @returns New segments and cursor offset, or null if not at prefix boundary
- */
-export function removeListPrefix(
-  segments: Segment[],
-  cursorPos: number,
-): { segments: Segment[]; cursorOffset: number } | null {
-  const plainText = segmentsToPlainText(segments)
-  const ctx = getListContext(plainText, cursorPos)
-  if (!ctx) return null
-
-  // Only act if cursor is at or before the content start
-  if (cursorPos > ctx.contentStart) return null
-
-  // Remove the prefix (keep indentation + content after prefix)
-  const newSegments = replaceTextRange(
-    segments,
-    ctx.lineStart,
-    ctx.contentStart,
-    '  '.repeat(ctx.indent),
-  )
-  return {
-    segments: newSegments,
-    cursorOffset: ctx.lineStart + ctx.indent * 2,
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Inline markdown parsing
 // ---------------------------------------------------------------------------
 
@@ -827,31 +594,6 @@ export function parseInlineMarkdown(text: string): MarkdownToken[] {
 }
 
 // ---------------------------------------------------------------------------
-// List prefix normalization
-// ---------------------------------------------------------------------------
-
-/**
- * Normalizes markdown list prefixes in segments:
- * - When markdown is enabled, converts "- " at line starts to "• "
- * - When markdown is disabled, converts "• " at line starts to "- "
- *
- * Returns the original array unchanged if no conversions were needed.
- */
-export function normalizeListPrefixes(segments: Segment[], markdownEnabled: boolean): Segment[] {
-  let changed = false
-  const result = segments.map((seg) => {
-    if (seg.type !== 'text') return seg
-    const newText = markdownEnabled
-      ? seg.text.replace(/(^|\n)(\s*)- /g, '$1$2\u2022 ')
-      : seg.text.replace(/(^|\n)(\s*)\u2022 /g, '$1$2- ')
-    if (newText === seg.text) return seg
-    changed = true
-    return { ...seg, text: newText }
-  })
-  return changed ? result : segments
-}
-
-// ---------------------------------------------------------------------------
 // Segment comparison
 // ---------------------------------------------------------------------------
 
@@ -892,7 +634,7 @@ export function segmentsEqual(a: Segment[], b: Segment[]): boolean {
  * Merges adjacent text segments into single text segments.
  * Also removes empty text segments.
  */
-function mergeAdjacentTextSegments(segments: Segment[]): Segment[] {
+export function mergeAdjacentTextSegments(segments: Segment[]): Segment[] {
   const result: Segment[] = []
 
   for (const seg of segments) {

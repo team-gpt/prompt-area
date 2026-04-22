@@ -9,18 +9,20 @@ import {
   revertChipAtIndex,
   resolveTriggersInSegments,
   replaceTextRange,
+  isValidTriggerPosition,
+  parseInlineMarkdown,
+  toggleMarkdownWrap,
+  segmentsEqual,
+} from '../prompt-area-engine'
+import {
   getListContext,
   autoFormatListPrefix,
   insertListContinuation,
   indentListItem,
   outdentListItem,
   removeListPrefix,
-  isValidTriggerPosition,
-  parseInlineMarkdown,
-  toggleMarkdownWrap,
-  segmentsEqual,
   normalizeListPrefixes,
-} from '../prompt-area-engine'
+} from '../prompt-area-list-ops'
 
 // ---------------------------------------------------------------------------
 // Test trigger configs
