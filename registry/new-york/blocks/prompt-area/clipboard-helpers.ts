@@ -32,8 +32,8 @@ export function serializeFragmentToPlainText(fragment: DocumentFragment): string
     if (node.nodeType === Node.TEXT_NODE) {
       text += node.textContent ?? ''
     } else if (isChipElement(node)) {
-      const trigger = node.dataset.chipTrigger ?? ''
-      const display = node.dataset.chipDisplay ?? node.textContent ?? ''
+      const trigger = getChipTrigger(node) ?? ''
+      const display = getChipDisplay(node) ?? ''
       text += trigger + display
     } else if (isHTMLElement(node) && node.tagName === 'BR') {
       text += '\n'
@@ -152,8 +152,8 @@ export function insertSegmentsAtCursor(
     if (node.nodeType === Node.TEXT_NODE) {
       cursorOffset += (node.textContent ?? '').length
     } else if (isChipElement(node)) {
-      const trigger = node.dataset.chipTrigger ?? ''
-      const display = node.dataset.chipDisplay ?? node.textContent ?? ''
+      const trigger = getChipTrigger(node) ?? ''
+      const display = getChipDisplay(node) ?? ''
       cursorOffset += trigger.length + display.length
     } else if (isHTMLElement(node) && node.tagName === 'BR') {
       cursorOffset += 1
