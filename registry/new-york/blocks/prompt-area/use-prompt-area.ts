@@ -17,16 +17,18 @@ import {
   resolveChip,
   removeChipAtIndex,
   revertChipAtIndex,
+  replaceTextRange,
+  toggleMarkdownWrap,
+} from './prompt-area-engine'
+import {
   getListContext,
   autoFormatListPrefix,
   insertListContinuation,
   indentListItem,
   outdentListItem,
   removeListPrefix,
-  replaceTextRange,
-  toggleMarkdownWrap,
   normalizeListPrefixes,
-} from './prompt-area-engine'
+} from './prompt-area-list-ops'
 import {
   isHTMLElement,
   isChipElement,

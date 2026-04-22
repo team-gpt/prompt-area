@@ -31,6 +31,14 @@
           "type": "registry:component"
         },
         {
+          "path": "registry/new-york/blocks/prompt-area/prompt-area-list-ops.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "registry/new-york/blocks/prompt-area/prompt-area-paste-resolution.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "registry/new-york/blocks/prompt-area/dom-helpers.ts",
           "type": "registry:component"
         },

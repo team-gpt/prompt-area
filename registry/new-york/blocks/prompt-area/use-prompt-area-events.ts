@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 import type { Segment, ChipSegment, TriggerConfig } from './types'
-import { resolveTriggersInSegments } from './prompt-area-engine'
+import { resolveTriggersInSegments } from './prompt-area-paste-resolution'
 import {
   isChipElement,
   isHTMLElement,
