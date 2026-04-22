@@ -43,6 +43,10 @@
           "type": "registry:component"
         },
         {
+          "path": "registry/new-york/blocks/prompt-area/clipboard-helpers.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "registry/new-york/blocks/prompt-area/dom-helpers.ts",
           "type": "registry:component"
         },
