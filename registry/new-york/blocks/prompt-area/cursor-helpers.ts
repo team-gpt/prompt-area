@@ -20,7 +20,7 @@ import {
   isHTMLElement,
 } from './dom-helpers'
 
-type SavedCursor = {
+export type SavedCursor = {
   nodeIndex: number
   offset: number
 }
