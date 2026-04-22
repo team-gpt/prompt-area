@@ -3,18 +3,7 @@
 import { useCallback, useRef } from 'react'
 import type { Segment, ChipSegment, TriggerConfig } from './types'
 import { resolveTriggersInSegments } from './prompt-area-paste-resolution'
-import {
-  isChipElement,
-  isHTMLElement,
-  normalizeEditorDOM,
-  getChipTrigger,
-  getChipValue,
-  getChipDisplay,
-  getChipData,
-  getChipAutoResolved,
-  safeJsonStringify,
-  getSelectionRange,
-} from './dom-helpers'
+import { normalizeEditorDOM, safeJsonStringify, getSelectionRange } from './dom-helpers'
 import {
   serializeFragmentToPlainText,
   serializeFragmentToSegments,
