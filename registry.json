@@ -39,6 +39,10 @@
           "type": "registry:component"
         },
         {
+          "path": "registry/new-york/blocks/prompt-area/cursor-helpers.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "registry/new-york/blocks/prompt-area/dom-helpers.ts",
           "type": "registry:component"
         },
